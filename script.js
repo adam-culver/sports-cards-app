@@ -1,12 +1,23 @@
-const OPENAI_PROXY_URL = "YOUR_APPS_SCRIPT_PROXY_URL"; 
+// ===============================
+// CONFIG — CHANGE THESE
+// ===============================
+const OPENAI_PROXY_URL = "YOUR_APPS_SCRIPT_PROXY_URL";
 const SHEET_APPEND_URL = "YOUR_APPS_SCRIPT_APPEND_URL";
 const SHEET_ID = "YOUR_GOOGLE_SHEET_ID";
 
-// Upload → AI → CSV → Sheet
+// ===============================
+// ELEMENTS
+// ===============================
 const uploadBtn = document.getElementById("uploadBtn");
 const imageInput = document.getElementById("imageInput");
 const statusEl = document.getElementById("status");
+const tableHead = document.getElementById("tableHead");
+const tableBody = document.getElementById("tableBody");
+const searchInput = document.getElementById("searchInput");
 
+// ===============================
+// IMAGE → AI → CSV → SHEET
+// ===============================
 uploadBtn.onclick = async () => {
   const file = imageInput.files[0];
   if (!file) return alert("Select an image");
@@ -16,7 +27,7 @@ uploadBtn.onclick = async () => {
   const formData = new FormData();
   formData.append("image", file);
 
-  // 1️⃣ Send image to OpenAI (via proxy)
+  // 1️⃣ AI evaluation
   const aiRes = await fetch(OPENAI_PROXY_URL, {
     method: "POST",
     body: formData
@@ -24,7 +35,7 @@ uploadBtn.onclick = async () => {
 
   const csvRow = await aiRes.text();
 
-  // 2️⃣ Append CSV row to Google Sheet
+  // 2️⃣ Append to Google Sheet
   await fetch(SHEET_APPEND_URL, {
     method: "POST",
     body: csvRow
@@ -34,10 +45,12 @@ uploadBtn.onclick = async () => {
   loadSheet();
 };
 
-// Load + Display Google Sheet
-const tableHead = document.getElementById("tableHead");
-const tableBody = document.getElementById("tableBody");
-const searchInput = document.getElementById("searchInput");
+// ===============================
+// LOAD GOOGLE SHEET
+// ===============================
+let currentRows = [];
+let currentColumns = [];
+let sortDirection = 1;
 
 async function loadSheet() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
@@ -45,44 +58,68 @@ async function loadSheet() {
   const text = await res.text();
   const json = JSON.parse(text.substring(47).slice(0, -2));
 
-  const cols = json.table.cols.map(c => c.label);
-  const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ""));
+  currentColumns = json.table.cols.map(c => c.label);
+  currentRows = json.table.rows.map(r => r.c.map(c => c ? c.v : ""));
 
-  renderTable(cols, rows);
+  renderTable();
 }
 
-function renderTable(columns, rows) {
+// ===============================
+// RENDER TABLE
+// ===============================
+function renderTable() {
   tableHead.innerHTML = "";
   tableBody.innerHTML = "";
 
-  const tr = document.createElement("tr");
-  columns.forEach(col => {
+  const headerRow = document.createElement("tr");
+  currentColumns.forEach((col, index) => {
     const th = document.createElement("th");
     th.textContent = col;
-    th.onclick = () => sortTable(col);
-    tr.appendChild(th);
+    th.onclick = () => sortTable(index);
+    headerRow.appendChild(th);
   });
-  tableHead.appendChild(tr);
+  tableHead.appendChild(headerRow);
 
-  rows.forEach(row => addRow(row));
+  currentRows.forEach(row => {
+    const tr = document.createElement("tr");
+    row.forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tableBody.appendChild(tr);
+  });
 }
 
-function addRow(row) {
-  const tr = document.createElement("tr");
-  row.forEach(cell => {
-    const td = document.createElement("td");
-    td.textContent = cell;
-    tr.appendChild(td);
+// ===============================
+// SORTING
+// ===============================
+function sortTable(colIndex) {
+  sortDirection *= -1;
+
+  currentRows.sort((a, b) => {
+    if (a[colIndex] > b[colIndex]) return sortDirection;
+    if (a[colIndex] < b[colIndex]) return -sortDirection;
+    return 0;
   });
-  tableBody.appendChild(tr);
+
+  renderTable();
 }
 
-// Search / Filter
+// ===============================
+// SEARCH / FILTER
+// ===============================
 searchInput.addEventListener("input", () => {
   const term = searchInput.value.toLowerCase();
+
   [...tableBody.rows].forEach(row => {
     row.style.display = row.innerText.toLowerCase().includes(term)
       ? ""
       : "none";
   });
 });
+
+// ===============================
+// INITIAL LOAD
+// ===============================
+loadSheet();
