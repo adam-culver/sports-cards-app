@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sports Cards Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Sports Cards Evaluation</h1>
+
+  <section class="upload">
+    <input type="file" id="imageInput" accept="image/*" />
+    <button id="uploadBtn">Upload & Evaluate</button>
+    <p id="status"></p>
+  </section>
+
+  <section class="search">
+    <input type="text" id="searchInput" placeholder="Search cards..." />
+  </section>
+
+  <section>
+    <table id="cardsTable">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
