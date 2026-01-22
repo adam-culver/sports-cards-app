@@ -1,0 +1,88 @@
+const OPENAI_PROXY_URL = "YOUR_APPS_SCRIPT_PROXY_URL"; 
+const SHEET_APPEND_URL = "YOUR_APPS_SCRIPT_APPEND_URL";
+const SHEET_ID = "YOUR_GOOGLE_SHEET_ID";
+
+// Upload → AI → CSV → Sheet
+const uploadBtn = document.getElementById("uploadBtn");
+const imageInput = document.getElementById("imageInput");
+const statusEl = document.getElementById("status");
+
+uploadBtn.onclick = async () => {
+  const file = imageInput.files[0];
+  if (!file) return alert("Select an image");
+
+  statusEl.textContent = "Evaluating card...";
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  // 1️⃣ Send image to OpenAI (via proxy)
+  const aiRes = await fetch(OPENAI_PROXY_URL, {
+    method: "POST",
+    body: formData
+  });
+
+  const csvRow = await aiRes.text();
+
+  // 2️⃣ Append CSV row to Google Sheet
+  await fetch(SHEET_APPEND_URL, {
+    method: "POST",
+    body: csvRow
+  });
+
+  statusEl.textContent = "Card added!";
+  loadSheet();
+};
+
+// Load + Display Google Sheet
+const tableHead = document.getElementById("tableHead");
+const tableBody = document.getElementById("tableBody");
+const searchInput = document.getElementById("searchInput");
+
+async function loadSheet() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
+
+  const cols = json.table.cols.map(c => c.label);
+  const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ""));
+
+  renderTable(cols, rows);
+}
+
+function renderTable(columns, rows) {
+  tableHead.innerHTML = "";
+  tableBody.innerHTML = "";
+
+  const tr = document.createElement("tr");
+  columns.forEach(col => {
+    const th = document.createElement("th");
+    th.textContent = col;
+    th.onclick = () => sortTable(col);
+    tr.appendChild(th);
+  });
+  tableHead.appendChild(tr);
+
+  rows.forEach(row => addRow(row));
+}
+
+function addRow(row) {
+  const tr = document.createElement("tr");
+  row.forEach(cell => {
+    const td = document.createElement("td");
+    td.textContent = cell;
+    tr.appendChild(td);
+  });
+  tableBody.appendChild(tr);
+}
+
+// Search / Filter
+searchInput.addEventListener("input", () => {
+  const term = searchInput.value.toLowerCase();
+  [...tableBody.rows].forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(term)
+      ? ""
+      : "none";
+  });
+});
