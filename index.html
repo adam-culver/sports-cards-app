@@ -90,7 +90,6 @@
       </div>
     </section>
 
-    <!-- extra padding between sections -->
     <div class="spacer"></div>
 
     <section class="card">
@@ -108,51 +107,101 @@
   </div>
 
   <script>
+    // -----------------------------------
+    // Formatters
+    // -----------------------------------
+    function moneyFormatter(cell) {
+      const v = cell.getValue();
+      if (v === "" || v == null) return "";
+      const n = Number(v);
+      if (Number.isNaN(n)) return v;
+      return `$${n.toFixed(2)}`;
+    }
+
+    function ellipsisFormatter(cell) {
+      const v = cell.getValue();
+      const text = v == null ? "" : String(v);
+      // title shows full value on hover (desktop)
+      return `<span class="cell-ellipsis" title="${text.replace(/"/g, "&quot;")}">${text}</span>`;
+    }
+
     // ---------------------------
-    // Tabulator table
+    // Tabulator table (tuned to feel like the mock)
     // ---------------------------
     window.cardsTable = new Tabulator("#cardsTable", {
-      layout: "fitData",                 // width depends on content
-      responsiveLayout: "scroll",        // allow horizontal scroll on small screens
+      layout: "fitColumns",              // fills available width -> no needless horizontal scroll
+      responsiveLayout: "collapse",      // on small screens, hide less important columns (readable)
+      responsiveLayoutCollapseStartOpen: false,
+
       height: "560px",
       placeholder: "Upload an image to see evaluated cards here.",
+
       pagination: "local",
-      paginationSize: 100,               // default page size
+      paginationSize: 100,
       paginationSizeSelector: [10, 25, 50, 100, 250],
+
       movableColumns: true,
       resizableColumns: true,
+
       columns: [
-        { title: "Sport", field: "sport" },
-        { title: "League", field: "league" },
-        { title: "Year", field: "year", hozAlign: "center" },
-        { title: "Card Set", field: "cardSet" },
-        { title: "Athlete", field: "athlete" },
-        { title: "Team", field: "team" },
+        // Must-sees first (like your screenshot)
         {
-          title: "Low Price",
-          field: "lowPrice",
-          hozAlign: "right",
-          formatter: (cell) => {
-            const v = cell.getValue();
-            if (v === "" || v == null) return "";
-            const n = Number(v);
-            if (Number.isNaN(n)) return v;
-            return `$${n.toFixed(2)}`;
-          },
+          title: "Athlete", field: "athlete",
+          formatter: ellipsisFormatter,
+          minWidth: 180, widthGrow: 3,
+          responsive: 0
         },
         {
-          title: "High Price",
-          field: "highPrice",
-          hozAlign: "right",
-          formatter: (cell) => {
-            const v = cell.getValue();
-            if (v === "" || v == null) return "";
-            const n = Number(v);
-            if (Number.isNaN(n)) return v;
-            return `$${n.toFixed(2)}`;
-          },
+          title: "Year", field: "year",
+          hozAlign: "center",
+          width: 90,
+          sorter: "number",
+          responsive: 0
         },
-        { title: "Quantity", field: "quantity", hozAlign: "center" },
+        {
+          title: "Low", field: "lowPrice",
+          hozAlign: "right",
+          width: 110,
+          sorter: "number",
+          formatter: moneyFormatter,
+          responsive: 0
+        },
+        {
+          title: "High", field: "highPrice",
+          hozAlign: "right",
+          width: 110,
+          sorter: "number",
+          formatter: moneyFormatter,
+          responsive: 0
+        },
+
+        // "Maybe Team" - keep visible on desktop, collapses earlier on mobile
+        {
+          title: "Team", field: "team",
+          formatter: ellipsisFormatter,
+          minWidth: 140, widthGrow: 2,
+          responsive: 2
+        },
+
+        // Long field - ellipsis, grows a lot on desktop, collapses on small screens
+        {
+          title: "Card Set", field: "cardSet",
+          formatter: ellipsisFormatter,
+          minWidth: 220, widthGrow: 4,
+          responsive: 3
+        },
+
+        // Supporting fields
+        { title: "Sport", field: "sport", width: 120, responsive: 4 },
+        { title: "League", field: "league", width: 110, responsive: 5 },
+
+        {
+          title: "Qty", field: "quantity",
+          hozAlign: "center",
+          width: 80,
+          sorter: "number",
+          responsive: 6
+        },
       ],
     });
 
@@ -238,7 +287,6 @@
       return { id: uid(), field, title, type, raw, value };
     }
 
-    // Add chip
     addFilterBtn.addEventListener("click", () => {
       const f = buildFilterFromUI();
       if (!f) return;
@@ -250,12 +298,10 @@
       filterValueEl.focus();
     });
 
-    // Enter to add chip
     filterValueEl.addEventListener("keydown", (e) => {
       if (e.key === "Enter") addFilterBtn.click();
     });
 
-    // Clear all filters
     clearAllBtn.addEventListener("click", () => {
       searchEl.value = "";
       filterValueEl.value = "";
@@ -265,20 +311,18 @@
       applyAllFilters();
     });
 
-    // Export
     exportBtn.addEventListener("click", () => {
       window.cardsTable.download("csv", "sports-cards-evaluation.csv");
     });
 
     // ---------------------------
-    // Filter application (single source of truth)
+    // Filter application
     // ---------------------------
     function applyAllFilters() {
       window.cardsTable.clearFilter(true);
 
       const q = (searchEl.value || "").trim().toLowerCase();
 
-      // Global search across all fields
       if (q) {
         window.cardsTable.addFilter((data) => {
           const blob = [
@@ -290,7 +334,6 @@
         });
       }
 
-      // AND all chip filters
       chipFilters.forEach(f => {
         window.cardsTable.addFilter((data) => {
           const cell = data[f.field];
@@ -328,13 +371,9 @@
       exportBtn.disabled = total === 0;
     }
 
-    // Expose so script.js can call after setData()
     window.applyAllFilters = applyAllFilters;
-
-    // Keep search live
     searchEl.addEventListener("input", applyAllFilters);
 
-    // Initial
     renderChips();
     applyAllFilters();
   </script>
