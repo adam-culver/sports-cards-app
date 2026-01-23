@@ -12,57 +12,76 @@
 
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Favicons -->
+  <!-- Favicon bundle (root) -->
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
   <!-- Tabulator -->
-  <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
+  <link
+    href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css"
+    rel="stylesheet"
+  />
   <script src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
 </head>
 
 <body>
   <div class="app">
     <header class="topbar">
-      <div class="brand">
+      <div class="brand no-logo">
         <div>
           <h1>Sports Cards Evaluation</h1>
           <p class="subtitle">Upload a card image, detect details, and estimate value ranges.</p>
         </div>
       </div>
-      <button id="exportCsvBtn" class="btn btn-secondary" disabled>Export CSV</button>
+
+      <div class="topbar-actions">
+        <button id="exportCsvBtn" class="btn btn-secondary" disabled>Export CSV</button>
+      </div>
     </header>
 
     <section class="card">
       <div class="controls">
-        <div>
+        <div class="control-group">
           <label class="label">Upload</label>
           <div class="upload-row">
-            <input type="file" id="imageInput" accept="image/*">
+            <input type="file" id="imageInput" accept="image/*" />
             <button id="uploadBtn" class="btn btn-primary">Upload & Evaluate</button>
           </div>
           <p id="status" class="status"></p>
         </div>
 
-        <div>
+        <div class="control-group">
           <label class="label">Search (all fields)</label>
-          <input id="searchInput" class="input" placeholder='Try: "1974 Dolphins" or "NBA Jordan"'>
+          <input
+            type="text"
+            id="searchInput"
+            class="input"
+            placeholder='Try: "1974 Dolphins" or "NBA Jordan"'
+          />
         </div>
 
-        <div>
+        <div class="control-group">
           <label class="label">Filters (add multiple)</label>
-          <div class="filter-row">
+
+          <div class="universal-filter">
             <select id="filterField" class="input"></select>
             <select id="filterType" class="input">
               <option value="like">contains</option>
               <option value="=">=</option>
               <option value="!=">not</option>
+              <option value="<"><</option>
+              <option value="<="><=</option>
+              <option value=">">></option>
+              <option value=">=">>=</option>
             </select>
-            <input id="filterValue" class="input" placeholder='e.g. "Jordan"'>
+            <input id="filterValue" class="input" placeholder='e.g. "Dolphins", "1974", "Jordan"' />
             <button id="addFilterBtn" class="btn btn-secondary">Add</button>
           </div>
+
           <div class="chips-row">
             <div id="filterChips" class="chips"></div>
             <button id="clearFiltersBtn" class="btn btn-ghost">Clear all</button>
@@ -71,131 +90,255 @@
       </div>
     </section>
 
+    <!-- extra padding between sections -->
     <div class="spacer"></div>
 
     <section class="card">
       <div class="section-head">
         <h2>Results</h2>
-        <span id="resultsHint" class="hint">No results yet — upload an image to start.</span>
+        <div class="hint" id="resultsHint">No results yet — upload an image to start.</div>
       </div>
+
       <div id="cardsTable"></div>
     </section>
 
     <footer class="footer">
-      Tip: sort columns or use multiple filters for precision.
+      <span>Tip: sort by clicking column headers. Use multiple filters for precise matching.</span>
     </footer>
   </div>
 
-<script>
-/* ---------------- TABLE ---------------- */
-function ellipsis(cell){
-  const v = cell.getValue() ?? "";
-  return `<span class="ellipsis" title="${v}">${v}</span>`;
-}
-function money(cell){
-  const v = Number(cell.getValue());
-  return isNaN(v) ? "" : `$${v.toFixed(2)}`;
-}
-
-window.cardsTable = new Tabulator("#cardsTable",{
-  layout:"fitColumns",
-  responsiveLayout:"collapse",
-  height:"560px",
-  pagination:"local",
-  paginationSize:100,
-  paginationSizeSelector:[25,50,100,250],
-
-  columns:[
-    {title:"Athlete", field:"athlete", widthGrow:3, minWidth:160, responsive:0, formatter:ellipsis},
-    {title:"Year", field:"year", width:90, hozAlign:"center", responsive:0},
-    {title:"Low", field:"lowPrice", width:110, hozAlign:"right", responsive:0, formatter:money},
-    {title:"High", field:"highPrice", width:110, hozAlign:"right", responsive:0, formatter:money},
-
-    {title:"Team", field:"team", widthGrow:2, minWidth:140, responsive:2, formatter:ellipsis},
-    {title:"Card Set", field:"cardSet", widthGrow:4, minWidth:220, responsive:3, formatter:ellipsis},
-    {title:"Sport", field:"sport", width:110, responsive:4},
-    {title:"League", field:"league", width:100, responsive:5},
-    {title:"Qty", field:"quantity", width:80, hozAlign:"center", responsive:6},
-  ],
-});
-
-/* ---------------- FILTERING ---------------- */
-const search = document.getElementById("searchInput");
-const fieldSel = document.getElementById("filterField");
-const typeSel = document.getElementById("filterType");
-const valueInput = document.getElementById("filterValue");
-const addBtn = document.getElementById("addFilterBtn");
-const chips = document.getElementById("filterChips");
-const clearBtn = document.getElementById("clearFiltersBtn");
-const hint = document.getElementById("resultsHint");
-
-let chipFilters=[];
-
-function populateFields(){
-  fieldSel.innerHTML = cardsTable.getColumns()
-    .map(c=>c.getDefinition())
-    .filter(d=>d.field)
-    .map(d=>`<option value="${d.field}">${d.title}</option>`)
-    .join("");
-}
-populateFields();
-
-function applyFilters(){
-  cardsTable.clearFilter(true);
-
-  if(search.value){
-    const q=search.value.toLowerCase();
-    cardsTable.addFilter(r=>Object.values(r).join(" ").toLowerCase().includes(q));
-  }
-
-  chipFilters.forEach(f=>{
-    cardsTable.addFilter(r=>{
-      const v = String(r[f.field]??"").toLowerCase();
-      return f.type==="like"
-        ? v.includes(f.value)
-        : f.type==="=" ? v===f.value : v!==f.value;
+  <script>
+    // ---------------------------
+    // Tabulator table
+    // ---------------------------
+    window.cardsTable = new Tabulator("#cardsTable", {
+      layout: "fitData",                 // width depends on content
+      responsiveLayout: "scroll",        // allow horizontal scroll on small screens
+      height: "560px",
+      placeholder: "Upload an image to see evaluated cards here.",
+      pagination: "local",
+      paginationSize: 100,               // default page size
+      paginationSizeSelector: [10, 25, 50, 100, 250],
+      movableColumns: true,
+      resizableColumns: true,
+      columns: [
+        { title: "Sport", field: "sport" },
+        { title: "League", field: "league" },
+        { title: "Year", field: "year", hozAlign: "center" },
+        { title: "Card Set", field: "cardSet" },
+        { title: "Athlete", field: "athlete" },
+        { title: "Team", field: "team" },
+        {
+          title: "Low Price",
+          field: "lowPrice",
+          hozAlign: "right",
+          formatter: (cell) => {
+            const v = cell.getValue();
+            if (v === "" || v == null) return "";
+            const n = Number(v);
+            if (Number.isNaN(n)) return v;
+            return `$${n.toFixed(2)}`;
+          },
+        },
+        {
+          title: "High Price",
+          field: "highPrice",
+          hozAlign: "right",
+          formatter: (cell) => {
+            const v = cell.getValue();
+            if (v === "" || v == null) return "";
+            const n = Number(v);
+            if (Number.isNaN(n)) return v;
+            return `$${n.toFixed(2)}`;
+          },
+        },
+        { title: "Quantity", field: "quantity", hozAlign: "center" },
+      ],
     });
-  });
 
-  const shown=cardsTable.getDataCount("active");
-  hint.textContent=shown?`${shown} result(s) shown.`:`No results yet — upload an image to start.`;
-}
+    // ---------------------------
+    // UI elements
+    // ---------------------------
+    const searchEl = document.getElementById("searchInput");
+    const exportBtn = document.getElementById("exportCsvBtn");
+    const hintEl = document.getElementById("resultsHint");
 
-search.oninput=applyFilters;
+    const filterFieldEl = document.getElementById("filterField");
+    const filterTypeEl = document.getElementById("filterType");
+    const filterValueEl = document.getElementById("filterValue");
+    const addFilterBtn = document.getElementById("addFilterBtn");
+    const chipsEl = document.getElementById("filterChips");
+    const clearAllBtn = document.getElementById("clearFiltersBtn");
 
-addBtn.onclick=()=>{
-  if(!valueInput.value) return;
-  chipFilters.push({
-    field:fieldSel.value,
-    type:typeSel.value,
-    value:valueInput.value.toLowerCase()
-  });
-  valueInput.value="";
-  renderChips();
-  applyFilters();
-};
+    // ---------------------------
+    // Filter chips state
+    // ---------------------------
+    let chipFilters = []; // {id, field, title, type, raw, value}
 
-function renderChips(){
-  chips.innerHTML="";
-  chipFilters.forEach((f,i)=>{
-    const b=document.createElement("button");
-    b.className="chip";
-    b.textContent=`${fieldSel.querySelector(`[value="${f.field}"]`).text} ${f.type} "${f.value}" ×`;
-    b.onclick=()=>{chipFilters.splice(i,1);renderChips();applyFilters();};
-    chips.appendChild(b);
-  });
-}
+    function uid() {
+      return Math.random().toString(16).slice(2) + Date.now().toString(16);
+    }
 
-clearBtn.onclick=()=>{
-  chipFilters=[];
-  search.value="";
-  renderChips();
-  applyFilters();
-};
+    function populateFilterFields() {
+      const defs = window.cardsTable.getColumns()
+        .map(c => c.getDefinition())
+        .filter(d => d.field && d.title);
 
-window.applyAllFilters=applyFilters;
-</script>
+      filterFieldEl.innerHTML = defs
+        .map(d => `<option value="${d.field}">${d.title}</option>`)
+        .join("");
+    }
+    populateFilterFields();
 
-<script src="script.js"></script>
+    function operatorLabel(type) {
+      switch(type){
+        case "like": return "contains";
+        case "=": return "=";
+        case "!=": return "≠";
+        case "<": return "<";
+        case "<=": return "≤";
+        case ">": return ">";
+        case ">=": return "≥";
+        default: return type;
+      }
+    }
+
+    function renderChips() {
+      chipsEl.innerHTML = "";
+      chipFilters.forEach(f => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.title = "Click to remove";
+        chip.innerHTML = `
+          <span class="chip-text">${f.title} ${operatorLabel(f.type)} "${f.raw}"</span>
+          <span class="chip-x">×</span>
+        `;
+        chip.addEventListener("click", () => {
+          chipFilters = chipFilters.filter(x => x.id !== f.id);
+          renderChips();
+          applyAllFilters();
+        });
+        chipsEl.appendChild(chip);
+      });
+    }
+
+    function buildFilterFromUI() {
+      const field = filterFieldEl.value;
+      const title = filterFieldEl.options[filterFieldEl.selectedIndex]?.text || field;
+      const type = filterTypeEl.value;
+      const raw = (filterValueEl.value || "").trim();
+      if (!raw) return null;
+
+      let value = raw;
+      if (["<", "<=", ">", ">=", "=", "!="].includes(type)) {
+        const asNum = Number(raw);
+        if (!Number.isNaN(asNum)) value = asNum;
+      }
+      return { id: uid(), field, title, type, raw, value };
+    }
+
+    // Add chip
+    addFilterBtn.addEventListener("click", () => {
+      const f = buildFilterFromUI();
+      if (!f) return;
+
+      chipFilters.push(f);
+      filterValueEl.value = "";
+      renderChips();
+      applyAllFilters();
+      filterValueEl.focus();
+    });
+
+    // Enter to add chip
+    filterValueEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addFilterBtn.click();
+    });
+
+    // Clear all filters
+    clearAllBtn.addEventListener("click", () => {
+      searchEl.value = "";
+      filterValueEl.value = "";
+      filterTypeEl.value = "like";
+      chipFilters = [];
+      renderChips();
+      applyAllFilters();
+    });
+
+    // Export
+    exportBtn.addEventListener("click", () => {
+      window.cardsTable.download("csv", "sports-cards-evaluation.csv");
+    });
+
+    // ---------------------------
+    // Filter application (single source of truth)
+    // ---------------------------
+    function applyAllFilters() {
+      window.cardsTable.clearFilter(true);
+
+      const q = (searchEl.value || "").trim().toLowerCase();
+
+      // Global search across all fields
+      if (q) {
+        window.cardsTable.addFilter((data) => {
+          const blob = [
+            data.sport, data.league, data.year,
+            data.cardSet, data.athlete, data.team,
+            data.lowPrice, data.highPrice, data.quantity
+          ].join(" ").toLowerCase();
+          return blob.includes(q);
+        });
+      }
+
+      // AND all chip filters
+      chipFilters.forEach(f => {
+        window.cardsTable.addFilter((data) => {
+          const cell = data[f.field];
+
+          if (f.type === "like") {
+            return String(cell ?? "").toLowerCase().includes(String(f.raw).toLowerCase());
+          }
+
+          const leftNum = Number(cell);
+          const rightNum = Number(f.value);
+          const bothNumbers = !Number.isNaN(leftNum) && !Number.isNaN(rightNum);
+
+          const left = bothNumbers ? leftNum : String(cell ?? "");
+          const right = bothNumbers ? rightNum : String(f.value ?? "");
+
+          switch (f.type) {
+            case "=": return left === right;
+            case "!=": return left !== right;
+            case "<": return left < right;
+            case "<=": return left <= right;
+            case ">": return left > right;
+            case ">=": return left >= right;
+            default: return true;
+          }
+        });
+      });
+
+      const shown = window.cardsTable.getDataCount("active");
+      const total = window.cardsTable.getDataCount();
+
+      hintEl.textContent = total
+        ? `${shown} result(s) shown.`
+        : `No results yet — upload an image to start.`;
+
+      exportBtn.disabled = total === 0;
+    }
+
+    // Expose so script.js can call after setData()
+    window.applyAllFilters = applyAllFilters;
+
+    // Keep search live
+    searchEl.addEventListener("input", applyAllFilters);
+
+    // Initial
+    renderChips();
+    applyAllFilters();
+  </script>
+
+  <script src="script.js?v=7"></script>
 </body>
 </html>
