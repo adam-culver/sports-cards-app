@@ -10,6 +10,16 @@
 
   --radius: 18px;
   --focus: rgba(0, 122, 255, 0.25);
+
+  /* Match your Upload button gradient */
+  --brandA: rgba(0,122,255,0.95);
+  --brandB: rgba(88,86,214,0.92);
+  --brandGrad: linear-gradient(135deg, var(--brandA), var(--brandB));
+  --brandHover: rgba(0,122,255,0.12);
+
+  /* Subtle "grey-ish white" borders */
+  --grid: rgba(255,255,255,0.26);
+  --grid2: rgba(0,0,0,0.05);
 }
 
 *{ box-sizing: border-box; }
@@ -62,9 +72,7 @@ body::before{
   gap: 14px;
 }
 
-.brand.no-logo{
-  gap: 0;
-}
+.brand.no-logo{ gap: 0; }
 
 h1{
   margin: 0;
@@ -95,9 +103,7 @@ h1{
   -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
-.spacer{
-  height: 16px;
-}
+.spacer{ height: 16px; }
 
 .section-head{
   display: flex;
@@ -196,13 +202,11 @@ input[type="file"]{
 
 .btn-primary{
   color: white;
-  background: linear-gradient(135deg, rgba(0,122,255,0.95), rgba(88,86,214,0.92));
+  background: var(--brandGrad);
   box-shadow: 0 14px 30px rgba(0,122,255,0.22);
 }
 
-.btn-primary:hover{
-  box-shadow: 0 18px 40px rgba(0,122,255,0.28);
-}
+.btn-primary:hover{ box-shadow: 0 18px 40px rgba(0,122,255,0.28); }
 
 .btn-secondary{
   color: var(--text);
@@ -268,9 +272,7 @@ input[type="file"]{
   font-weight: 700;
 }
 
-.chip:hover{
-  background: rgba(255,255,255,0.75);
-}
+.chip:hover{ background: rgba(255,255,255,0.75); }
 
 .chip-text{
   color: rgba(20,25,35,0.88);
@@ -296,10 +298,9 @@ input[type="file"]{
 }
 
 /* ---------------------------
-   Table: mock-like styling
+   TABULATOR – requested styling
    --------------------------- */
 
-/* Softer, cleaner table surface */
 .tabulator{
   border: 1px solid rgba(255,255,255,0.40);
   background: rgba(255,255,255,0.45);
@@ -308,44 +309,53 @@ input[type="file"]{
   -webkit-backdrop-filter: blur(18px);
 }
 
-/* Header looks more “SaaS” */
+/* Header row = upload button gradient, bold white text */
 .tabulator .tabulator-header{
-  background: rgba(255,255,255,0.70);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: var(--brandGrad);
+  border-bottom: 1px solid rgba(255,255,255,0.20);
 }
 
-/* Reduce vertical gridlines */
 .tabulator .tabulator-col{
   background: transparent;
-  border-right: none;
+  border-right: 1px solid rgba(255,255,255,0.16); /* subtle vertical separators */
 }
 
-.tabulator .tabulator-col-title{
-  font-weight: 800;
+.tabulator .tabulator-col-title,
+.tabulator .tabulator-col-title-holder{
+  color: rgba(255,255,255,0.98);
+  font-weight: 900;
   letter-spacing: -0.01em;
 }
 
-/* Rows: airy + subtle separators */
+/* Make sort arrows visible on dark header */
+.tabulator .tabulator-col .tabulator-arrow{
+  border-bottom-color: rgba(255,255,255,0.95) !important;
+  border-top-color: rgba(255,255,255,0.95) !important;
+  opacity: 0.9;
+}
+
+/* Body gridlines: subtle grey-ish white */
 .tabulator .tabulator-row{
-  background: rgba(255,255,255,0.65);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  background: rgba(255,255,255,0.62);
+  border-bottom: 1px solid var(--grid2);
 }
 
 .tabulator .tabulator-row:nth-child(even){
-  background: rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.54);
 }
 
+/* Hover matches header blue */
 .tabulator .tabulator-row:hover{
-  background: rgba(0,122,255,0.08);
+  background: var(--brandHover);
 }
 
-/* Cells: more breathing room + no vertical borders */
+/* Cells: subtle borders + breathing room */
 .tabulator .tabulator-cell{
   padding: 12px 14px;
-  border-right: none;
+  border-right: 1px solid var(--grid);
 }
 
-/* Ellipsis for long fields */
+/* Long fields */
 .cell-ellipsis{
   display: block;
   max-width: 100%;
@@ -361,30 +371,53 @@ input[type="file"]{
   background: transparent;
 }
 
-/* Footer/pagination */
+/* Footer row (Page Size) matches header styling */
 .tabulator .tabulator-footer{
-  background: rgba(255,255,255,0.70);
-  border-top: 1px solid rgba(0,0,0,0.06);
+  background: var(--brandGrad);
+  border-top: 1px solid rgba(255,255,255,0.20);
+  color: rgba(255,255,255,0.98);
 }
 
+/* Move pagination controls to the right */
+.tabulator .tabulator-footer .tabulator-paginator{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Make page size control not stretch */
+.tabulator .tabulator-footer .tabulator-page-size{
+  width: auto !important;
+  flex: 0 0 auto !important;
+}
+
+/* Shrink dropdown to content */
+.tabulator .tabulator-footer select{
+  width: auto !important;
+  min-width: 64px; /* enough for 100/250 */
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.98);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Buttons in footer */
 .tabulator .tabulator-paginator button{
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.55);
-  background: rgba(255,255,255,0.60);
+  background: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.98);
   padding: 6px 10px;
-  margin: 0 4px;
+  margin: 0;
 }
 
 .tabulator .tabulator-paginator button:hover{
-  background: rgba(255,255,255,0.80);
-}
-
-/* Footer */
-.footer{
-  margin-top: 16px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  text-align: center;
+  background: rgba(255,255,255,0.28);
 }
 
 /* Responsive */
