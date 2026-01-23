@@ -18,23 +18,36 @@ const searchInput = document.getElementById("searchInput");
 // ===============================
 // IMAGE → AI → CSV → SHEET
 // ===============================
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = String(reader.result).split(",")[1]; // strip data:...;base64,
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 uploadBtn.onclick = async () => {
+  const file = imageInput.files[0];
+  if (!file) return alert("Select an image");
+
   statusEl.textContent = "Evaluating & saving...";
 
-const arrayBuffer = await file.arrayBuffer();
+  const base64 = await fileToBase64(file);
 
-// Single call: image → OpenAI → append (handled server-side)
-await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
-  method: "POST",
-  body: arrayBuffer,
-  mode: "no-cors"
-});
+  await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: base64
+  });
 
-statusEl.textContent = "Evaluating & saving...";
-
-// Give Apps Script a moment to finish
-setTimeout(loadSheet, 1500);
+  statusEl.textContent = "Saved! Refreshing table...";
+  setTimeout(loadSheet, 2000);
 };
+
 
 // ===============================
 // LOAD GOOGLE SHEET
