@@ -38,14 +38,29 @@ uploadBtn.onclick = async () => {
 
   const base64 = await fileToBase64(file);
 
-  await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: base64
-  });
+  try {
+    const res = await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: base64
+    });
 
-  statusEl.textContent = "Saved! Refreshing table...";
-  setTimeout(loadSheet, 2000);
+    const text = await res.text();
+
+    // Show errors directly
+    if (!res.ok || text.startsWith("ERROR")) {
+      statusEl.textContent = text;
+      console.error(text);
+      return;
+    }
+
+    statusEl.textContent = "Saved! Refreshing table...";
+    setTimeout(loadSheet, 2000);
+
+  } catch (err) {
+    statusEl.textContent = `Fetch failed: ${err}`;
+    console.error(err);
+  }
 };
 
 
