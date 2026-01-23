@@ -101,9 +101,7 @@
       <div id="cardsTable"></div>
     </section>
 
-    <footer class="footer">
-      <span>Tip: sort by clicking column headers. Use multiple filters for precise matching.</span>
-    </footer>
+    <!-- removed footer tip -->
   </div>
 
   <script>
@@ -121,16 +119,30 @@
     function ellipsisFormatter(cell) {
       const v = cell.getValue();
       const text = v == null ? "" : String(v);
-      // title shows full value on hover (desktop)
       return `<span class="cell-ellipsis" title="${text.replace(/"/g, "&quot;")}">${text}</span>`;
     }
 
     // ---------------------------
-    // Tabulator table (tuned to feel like the mock)
+    // Tabulator table
     // ---------------------------
+    const TABLE_COLUMNS = [
+      { title: "Athlete", field: "athlete", formatter: ellipsisFormatter, minWidth: 180, widthGrow: 3, responsive: 0 },
+      { title: "Year", field: "year", hozAlign: "center", width: 90, sorter: "number", responsive: 0 },
+      { title: "Low", field: "lowPrice", hozAlign: "right", width: 110, sorter: "number", formatter: moneyFormatter, responsive: 0 },
+      { title: "High", field: "highPrice", hozAlign: "right", width: 110, sorter: "number", formatter: moneyFormatter, responsive: 0 },
+
+      { title: "Team", field: "team", formatter: ellipsisFormatter, minWidth: 140, widthGrow: 2, responsive: 2 },
+      { title: "Card Set", field: "cardSet", formatter: ellipsisFormatter, minWidth: 220, widthGrow: 4, responsive: 3 },
+
+      { title: "Sport", field: "sport", width: 120, responsive: 4 },
+      { title: "League", field: "league", width: 110, responsive: 5 },
+
+      { title: "Qty", field: "quantity", hozAlign: "center", width: 80, sorter: "number", responsive: 6 },
+    ];
+
     window.cardsTable = new Tabulator("#cardsTable", {
-      layout: "fitColumns",              // fills available width -> no needless horizontal scroll
-      responsiveLayout: "collapse",      // on small screens, hide less important columns (readable)
+      layout: "fitColumns",
+      responsiveLayout: "collapse",
       responsiveLayoutCollapseStartOpen: false,
 
       height: "560px",
@@ -143,66 +155,7 @@
       movableColumns: true,
       resizableColumns: true,
 
-      columns: [
-        // Must-sees first (like your screenshot)
-        {
-          title: "Athlete", field: "athlete",
-          formatter: ellipsisFormatter,
-          minWidth: 180, widthGrow: 3,
-          responsive: 0
-        },
-        {
-          title: "Year", field: "year",
-          hozAlign: "center",
-          width: 90,
-          sorter: "number",
-          responsive: 0
-        },
-        {
-          title: "Low", field: "lowPrice",
-          hozAlign: "right",
-          width: 110,
-          sorter: "number",
-          formatter: moneyFormatter,
-          responsive: 0
-        },
-        {
-          title: "High", field: "highPrice",
-          hozAlign: "right",
-          width: 110,
-          sorter: "number",
-          formatter: moneyFormatter,
-          responsive: 0
-        },
-
-        // "Maybe Team" - keep visible on desktop, collapses earlier on mobile
-        {
-          title: "Team", field: "team",
-          formatter: ellipsisFormatter,
-          minWidth: 140, widthGrow: 2,
-          responsive: 2
-        },
-
-        // Long field - ellipsis, grows a lot on desktop, collapses on small screens
-        {
-          title: "Card Set", field: "cardSet",
-          formatter: ellipsisFormatter,
-          minWidth: 220, widthGrow: 4,
-          responsive: 3
-        },
-
-        // Supporting fields
-        { title: "Sport", field: "sport", width: 120, responsive: 4 },
-        { title: "League", field: "league", width: 110, responsive: 5 },
-
-        {
-          title: "Qty", field: "quantity",
-          hozAlign: "center",
-          width: 80,
-          sorter: "number",
-          responsive: 6
-        },
-      ],
+      columns: TABLE_COLUMNS,
     });
 
     // ---------------------------
@@ -222,17 +175,15 @@
     // ---------------------------
     // Filter chips state
     // ---------------------------
-    let chipFilters = []; // {id, field, title, type, raw, value}
+    let chipFilters = [];
 
     function uid() {
       return Math.random().toString(16).slice(2) + Date.now().toString(16);
     }
 
+    // ✅ FIX: populate from the same TABLE_COLUMNS we passed to Tabulator
     function populateFilterFields() {
-      const defs = window.cardsTable.getColumns()
-        .map(c => c.getDefinition())
-        .filter(d => d.field && d.title);
-
+      const defs = TABLE_COLUMNS.filter(d => d.field && d.title);
       filterFieldEl.innerHTML = defs
         .map(d => `<option value="${d.field}">${d.title}</option>`)
         .join("");
