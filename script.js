@@ -3,7 +3,7 @@
 // ===============================
 const OPENAI_PROXY_URL = "YOUR_APPS_SCRIPT_PROXY_URL";
 const SHEET_APPEND_URL = "https://script.google.com/macros/s/AKfycbzzI9GhYNVVg04QkGfUKY2KKqmjcEMNuc8Yc2-HyKvxX5c9qnyjIVr94y74rrc1p5A5/exec";
-const SHEET_ID = "1JJDomMLK9XJGaXgvRfbfIvToZ18nXZl-AX_JYORDxY0";
+const SHEET_ID = "1SYM9bU00-EkKelZTiWis8xlsl46ByhDSxt7kDlLyenM";
 
 // ===============================
 // ELEMENTS
