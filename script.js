@@ -1,8 +1,8 @@
 // ===============================
 // CONFIG — CHANGE THESE
 // ===============================
-const OPENAI_PROXY_URL = "https://script.google.com/macros/s/AKfycbwwwu84ImlBgIeA2wwIKVm8EGYM3t8MHXNMzi-LisqrJ-3P6dV7ecl6lCH0jGSOu2jA/exec";
-const SHEET_APPEND_URL = "https://script.google.com/macros/s/AKfycbwwwu84ImlBgIeA2wwIKVm8EGYM3t8MHXNMzi-LisqrJ-3P6dV7ecl6lCH0jGSOu2jA/exec";
+const OPENAI_PROXY_URL = "https://script.google.com/macros/s/AKfycbz91iTt1zU5zFwFoDhzFM0VqzooIKuqP47wV7eTDDXJ_8sXhMBFXiNM5ctVP5X6H8Ri/exec";
+const SHEET_APPEND_URL = "https://script.google.com/macros/s/AKfycbz91iTt1zU5zFwFoDhzFM0VqzooIKuqP47wV7eTDDXJ_8sXhMBFXiNM5ctVP5X6H8Ri/exec";
 const SHEET_ID = "1SYM9bU00-EkKelZTiWis8xlsl46ByhDSxt7kDlLyenM";
 
 // ===============================
@@ -39,14 +39,18 @@ uploadBtn.onclick = async () => {
   const base64 = await fileToBase64(file);
 
   try {
-    const res = await fetch(`${OPENAI_PROXY_URL}?action=ingest&debug=1`, {
+    const res = await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
   method: "POST",
   headers: { "Content-Type": "text/plain" },
   body: base64
 });
 
+const text = await res.text();
+if (!res.ok || text.startsWith("ERROR")) {
+  statusEl.textContent = text;
+  return;
+}
 
-    const text = await res.text();
 
     // Show errors directly
     if (!res.ok || text.startsWith("ERROR")) {
