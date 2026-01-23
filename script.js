@@ -126,18 +126,28 @@
   }
 
   function normalizeForTabulator(row) {
-    return {
-      id: row.id,
-      cardType: row.cardType ?? row.card ?? row.set ?? row.product ?? "",
-      athlete: row.athlete ?? row.player ?? row.name ?? "",
-      sport: row.sport ?? "",
-      year: row.year ?? "",
-      low: row.low ?? row.lowEnd ?? row.min ?? "",
-      high: row.high ?? row.highEnd ?? row.max ?? "",
-      source: row.source ?? row.market ?? "",
-      ...row,
-    };
-  }
+  return {
+    id: row.id,
+
+    // match sheet headers → our Tabulator fields
+    sport: row.sport ?? "",
+    league: row.league ?? "",
+    year: row.year ?? "",
+    cardSet: row.cardSet ?? row.cardType ?? row.set ?? "",
+    athlete: row.athlete ?? "",
+    team: row.team ?? "",
+
+    // handle "Low Price" / "High Price" header normalization if needed
+    lowPrice: row.lowPrice ?? row.low ?? "",
+    highPrice: row.highPrice ?? row.high ?? "",
+
+    quantity: row.quantity ?? "",
+
+    // keep everything else too
+    ...row,
+  };
+}
+
 
   // ===============================
   // LOAD SHEET → TABULATOR
