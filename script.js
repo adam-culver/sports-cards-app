@@ -19,39 +19,21 @@ const searchInput = document.getElementById("searchInput");
 // IMAGE → AI → CSV → SHEET
 // ===============================
 uploadBtn.onclick = async () => {
-  const file = imageInput.files[0];
-  if (!file) return alert("Select an image");
+  statusEl.textContent = "Evaluating & saving...";
 
-  statusEl.textContent = "Evaluating card...";
-
-  const formData = new FormData();
-  formData.append("image", file);
-
-  // 1️⃣ AI evaluation
 const arrayBuffer = await file.arrayBuffer();
 
-const aiRes = await fetch(`${OPENAI_PROXY_URL}?action=evaluate`, {
+// Single call: image → OpenAI → append (handled server-side)
+await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
   method: "POST",
-  body: arrayBuffer
+  body: arrayBuffer,
+  mode: "no-cors"
 });
 
-const csvRow = (await aiRes.text()).trim();
+statusEl.textContent = "Saved! Refreshing table...";
 
-// Append
-await fetch(`${SHEET_APPEND_URL}?action=append`, {
-  method: "POST",
-  body: csvRow
-});
-
-
-  // 2️⃣ Append to Google Sheet
-  await fetch(SHEET_APPEND_URL, {
-    method: "POST",
-    body: csvRow
-  });
-
-  statusEl.textContent = "Card added!";
-  loadSheet();
+// Give Apps Script a moment to finish
+setTimeout(loadSheet, 1500);
 };
 
 // ===============================
