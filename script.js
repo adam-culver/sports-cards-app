@@ -31,33 +31,30 @@ function fileToBase64(file) {
 }
 
 uploadBtn.onclick = async () => {
-  const file = imageInput.files[0];
-  if (!file) return alert("Select an image");
+  if (uploadBtn.disabled) return; // safety guard
 
-statusEl.textContent = "Evaluating & saving...";
+  uploadBtn.disabled = true;
+  uploadBtn.textContent = "Processing...";
 
-const base64 = await fileToBase64(file);
+  try {
+    const file = imageInput.files[0];
+    if (!file) {
+      alert("Select an image");
+      return;
+    }
 
-const res = await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
-  method: "POST",
-  headers: { "Content-Type": "text/plain" },
-  body: base64
-});
+    statusEl.textContent = "Evaluating & saving...";
 
-const text = await res.text();
+    const base64 = await fileToBase64(file);
 
-if (!res.ok || text.startsWith("ERROR")) {
-  statusEl.textContent = text;
-  console.error(text);
-  return;
-}
+    const res = await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: base64
+    });
 
-statusEl.textContent = "Saved! Refreshing table...";
-setTimeout(loadSheet, 2000);
+    const text = await res.text();
 
-
-
-    // Show errors directly
     if (!res.ok || text.startsWith("ERROR")) {
       statusEl.textContent = text;
       console.error(text);
@@ -68,10 +65,14 @@ setTimeout(loadSheet, 2000);
     setTimeout(loadSheet, 2000);
 
   } catch (err) {
-    statusEl.textContent = `Fetch failed: ${err}`;
     console.error(err);
+    statusEl.textContent = "Unexpected error. Check console.";
+  } finally {
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "Upload & Evaluate";
   }
 };
+
 
 
 // ===============================
