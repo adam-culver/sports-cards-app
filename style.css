@@ -411,3 +411,40 @@ input[type="file"]{
   font-weight: 900;
   font-size: 0.85rem;
 }
+/* Icon-only action button (table) */
+.icon-btn{
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  color: rgba(255,255,255,0.95);
+  transition:
+    background 0.15s ease,
+    transform 0.08s ease,
+    box-shadow 0.15s ease;
+}
+
+.icon-btn:hover{
+  background: rgba(255,255,255,0.18);
+}
+
+.icon-btn:active{
+  transform: scale(0.95);
+}
+
+.icon-btn:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.35);
+}
+
+/* Ensure SVG inherits color */
+.icon-btn svg{
+  display: block;
+}
+
