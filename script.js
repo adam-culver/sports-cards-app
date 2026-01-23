@@ -12,15 +12,7 @@
   const uploadBtn = document.getElementById("uploadBtn");
   const imageInput = document.getElementById("imageInput");
   const statusEl = document.getElementById("status");
-
-  // (index.html already wires these, but safe to read)
-  const searchInput = document.getElementById("searchInput");
-  const exportButton = document.getElementById("exportCsvBtn");
-
-  // ===============================
-  // STATE
-  // ===============================
-  let currentData = [];
+  const exportBtn = document.getElementById("exportCsvBtn");
 
   // ===============================
   // UI HELPERS
@@ -81,7 +73,7 @@
   }
 
   // ===============================
-  // GVIZ PARSER (your old working approach)
+  // GVIZ PARSER (same approach as your old working code)
   // ===============================
   function parseGvizResponse(text) {
     const payload = text.substring(47).slice(0, -2);
@@ -114,109 +106,84 @@
         obj[field] = cell ? cell.v : "";
       });
 
-      // light numeric coercion
+      // numeric coercion for known fields
       if (obj.year !== "" && obj.year != null && !Number.isNaN(Number(obj.year))) obj.year = Number(obj.year);
-      if (obj.low !== "" && obj.low != null && !Number.isNaN(Number(obj.low))) obj.low = Number(obj.low);
-      if (obj.high !== "" && obj.high != null && !Number.isNaN(Number(obj.high))) obj.high = Number(obj.high);
+      if (obj.lowPrice !== "" && obj.lowPrice != null && !Number.isNaN(Number(obj.lowPrice))) obj.lowPrice = Number(obj.lowPrice);
+      if (obj.highPrice !== "" && obj.highPrice != null && !Number.isNaN(Number(obj.highPrice))) obj.highPrice = Number(obj.highPrice);
+      if (obj.quantity !== "" && obj.quantity != null && !Number.isNaN(Number(obj.quantity))) obj.quantity = Number(obj.quantity);
 
       return obj;
     });
 
-    return { data };
+    return data;
   }
 
-  function normalizeForTabulator(row) {
-  return {
-    id: row.id,
-
-    // match sheet headers → our Tabulator fields
-    sport: row.sport ?? "",
-    league: row.league ?? "",
-    year: row.year ?? "",
-    cardSet: row.cardSet ?? row.cardType ?? row.set ?? "",
-    athlete: row.athlete ?? "",
-    team: row.team ?? "",
-
-    // handle "Low Price" / "High Price" header normalization if needed
-    lowPrice: row.lowPrice ?? row.low ?? "",
-    highPrice: row.highPrice ?? row.high ?? "",
-
-    quantity: row.quantity ?? "",
-
-    // keep everything else too
-    ...row,
-  };
-}
-
+  // ===============================
+  // Normalize fields to exactly what index.html expects
+  // ===============================
+  function normalizeRow(row) {
+    return {
+      id: row.id,
+      sport: row.sport ?? "",
+      league: row.league ?? "",
+      year: row.year ?? "",
+      cardSet: row.cardSet ?? "",
+      athlete: row.athlete ?? "",
+      team: row.team ?? "",
+      lowPrice: row.lowPrice ?? "",
+      highPrice: row.highPrice ?? "",
+      quantity: row.quantity ?? "",
+      ...row,
+    };
+  }
 
   // ===============================
   // LOAD SHEET → TABULATOR
   // ===============================
   async function loadSheet() {
-    console.log("[loadSheet] starting…");
-
     try {
       setStatus("Loading results from sheet...", "info");
 
       const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
-      console.log("[loadSheet] fetching:", url);
-
       const res = await fetch(url, { cache: "no-store" });
       const text = await res.text();
 
-      console.log("[loadSheet] response head:", text.slice(0, 90));
-
       const gviz = parseGvizResponse(text);
-      const { data } = gvizToObjects(gviz);
-
-      currentData = data.map(normalizeForTabulator);
+      const rows = gvizToObjects(gviz).map(normalizeRow);
 
       if (!window.cardsTable) {
-        throw new Error("Tabulator not initialized yet (window.cardsTable missing).");
+        throw new Error("Table not initialized (window.cardsTable missing). Check script order in index.html.");
       }
 
-      await Promise.resolve(window.cardsTable.setData(currentData));
+      await Promise.resolve(window.cardsTable.setData(rows));
 
-      if (typeof window.refreshFilterOptions === "function") {
-        window.refreshFilterOptions(currentData);
-      }
-      if (typeof window.applyFilters === "function") {
-        window.applyFilters();
-      }
+      // update hint/export and apply filters
+      if (typeof window.applyAllFilters === "function") window.applyAllFilters();
 
-      if (exportButton) exportButton.disabled = currentData.length === 0;
+      if (exportBtn) exportBtn.disabled = rows.length === 0;
 
-      setStatus(
-        currentData.length ? `Loaded ${currentData.length} row(s).` : "No rows found yet.",
-        currentData.length ? "success" : "info"
-      );
-
-      console.log("[loadSheet] loaded rows:", currentData.length, "sample:", currentData[0]);
+      setStatus(rows.length ? `Loaded ${rows.length} row(s).` : "No rows found yet.", rows.length ? "success" : "info");
     } catch (err) {
-      console.error("[loadSheet] error:", err);
+      console.error(err);
       setStatus("ERROR loading sheet: " + (err?.message || String(err)), "error");
     }
   }
 
   // ===============================
-  // INIT (wait for Tabulator instance)
+  // INIT (wait for Tabulator instance created in index.html)
   // ===============================
   function init() {
-    console.log("[init] script running");
-
     let attempts = 0;
     const timer = setInterval(() => {
       attempts++;
       if (window.cardsTable) {
         clearInterval(timer);
-        console.log("[init] Tabulator found, loading sheet…");
         loadSheet();
         return;
       }
-      if (attempts >= 20) {
+      if (attempts >= 30) {
         clearInterval(timer);
-        console.warn("[init] Tabulator not found after retries.");
-        setStatus("ERROR: Table didn’t initialize. Check index.html script order.", "error");
+        setStatus("ERROR: table didn’t initialize. Check Tabulator script tag.", "error");
       }
     }, 100);
   }
@@ -225,10 +192,5 @@
     document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
-  }
-
-  // (optional) keep search wired if needed
-  if (searchInput && typeof window.applyFilters === "function") {
-    searchInput.addEventListener("input", window.applyFilters);
   }
 })();
