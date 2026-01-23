@@ -90,6 +90,7 @@
       </div>
     </section>
 
+    <!-- extra padding between sections -->
     <div class="spacer"></div>
 
     <section class="card">
@@ -100,8 +101,6 @@
 
       <div id="cardsTable"></div>
     </section>
-
-    <!-- removed footer tip -->
   </div>
 
   <script>
@@ -122,8 +121,25 @@
       return `<span class="cell-ellipsis" title="${text.replace(/"/g, "&quot;")}">${text}</span>`;
     }
 
+    // -----------------------------------
+    // Google Images button column
+    // -----------------------------------
+    function googleImagesQueryFromRow(d) {
+      const parts = [
+        d.year,
+        d.cardSet,
+        d.athlete,
+        d.team,
+        d.league,
+        d.sport,
+        "trading card",
+      ].filter(Boolean);
+
+      return encodeURIComponent(parts.join(" "));
+    }
+
     // ---------------------------
-    // Tabulator table
+    // Tabulator columns (single source of truth)
     // ---------------------------
     const TABLE_COLUMNS = [
       { title: "Athlete", field: "athlete", formatter: ellipsisFormatter, minWidth: 180, widthGrow: 3, responsive: 0 },
@@ -138,21 +154,27 @@
       { title: "League", field: "league", width: 110, responsive: 5 },
 
       { title: "Qty", field: "quantity", hozAlign: "center", width: 80, sorter: "number", responsive: 6 },
-      {
-    title: "Search",
-    field: "_img",
-    headerSort: false,
-    hozAlign: "center",
-    width: 110,
-    formatter: () => `<button class="btn btn-ghost btn-mini" type="button">Images</button>`,
-    cellClick: (e, cell) => {
-      const d = cell.getRow().getData();
-      const qParts = [d.year, d.cardSet, d.athlete, d.team, d.league, d.sport, "trading card"].filter(Boolean);
-      const q = encodeURIComponent(qParts.join(" "));
-      window.open(`https://www.google.com/search?tbm=isch&q=${q}`, "_blank", "noopener,noreferrer");
-    },
-  ];
 
+      // ✅ NEW: Images button opens Google Images in new tab
+      {
+        title: "Images",
+        field: "_images",
+        headerSort: false,
+        hozAlign: "center",
+        width: 120,
+        formatter: () => `<button class="btn btn-ghost btn-mini" type="button">Images</button>`,
+        cellClick: (e, cell) => {
+          const d = cell.getRow().getData();
+          const q = googleImagesQueryFromRow(d);
+          const url = `https://www.google.com/search?tbm=isch&q=${q}`;
+          window.open(url, "_blank", "noopener,noreferrer");
+        },
+      },
+    ];
+
+    // ---------------------------
+    // Tabulator table
+    // ---------------------------
     window.cardsTable = new Tabulator("#cardsTable", {
       layout: "fitColumns",
       responsiveLayout: "collapse",
@@ -188,15 +210,15 @@
     // ---------------------------
     // Filter chips state
     // ---------------------------
-    let chipFilters = [];
+    let chipFilters = []; // {id, field, title, type, raw, value}
 
     function uid() {
       return Math.random().toString(16).slice(2) + Date.now().toString(16);
     }
 
-    // ✅ FIX: populate from the same TABLE_COLUMNS we passed to Tabulator
     function populateFilterFields() {
-      const defs = TABLE_COLUMNS.filter(d => d.field && d.title);
+      // ✅ Use the same columns we passed to Tabulator
+      const defs = TABLE_COLUMNS.filter(d => d.field && d.title && !String(d.field).startsWith("_"));
       filterFieldEl.innerHTML = defs
         .map(d => `<option value="${d.field}">${d.title}</option>`)
         .join("");
@@ -251,6 +273,7 @@
       return { id: uid(), field, title, type, raw, value };
     }
 
+    // Add chip
     addFilterBtn.addEventListener("click", () => {
       const f = buildFilterFromUI();
       if (!f) return;
@@ -262,10 +285,12 @@
       filterValueEl.focus();
     });
 
+    // Enter to add chip
     filterValueEl.addEventListener("keydown", (e) => {
       if (e.key === "Enter") addFilterBtn.click();
     });
 
+    // Clear all filters
     clearAllBtn.addEventListener("click", () => {
       searchEl.value = "";
       filterValueEl.value = "";
@@ -275,18 +300,20 @@
       applyAllFilters();
     });
 
+    // Export
     exportBtn.addEventListener("click", () => {
       window.cardsTable.download("csv", "sports-cards-evaluation.csv");
     });
 
     // ---------------------------
-    // Filter application
+    // Filter application (single source of truth)
     // ---------------------------
     function applyAllFilters() {
       window.cardsTable.clearFilter(true);
 
       const q = (searchEl.value || "").trim().toLowerCase();
 
+      // Global search across all fields
       if (q) {
         window.cardsTable.addFilter((data) => {
           const blob = [
@@ -298,6 +325,7 @@
         });
       }
 
+      // AND all chip filters
       chipFilters.forEach(f => {
         window.cardsTable.addFilter((data) => {
           const cell = data[f.field];
@@ -335,9 +363,13 @@
       exportBtn.disabled = total === 0;
     }
 
+    // Expose so script.js can call after setData()
     window.applyAllFilters = applyAllFilters;
+
+    // Keep search live
     searchEl.addEventListener("input", applyAllFilters);
 
+    // Initial
     renderChips();
     applyAllFilters();
   </script>
