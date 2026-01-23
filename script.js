@@ -1,7 +1,7 @@
 // ===============================
 // CONFIG — CHANGE THESE
 // ===============================
-const OPENAI_PROXY_URL = "YOUR_APPS_SCRIPT_PROXY_URL";
+const OPENAI_PROXY_URL = "https://script.google.com/macros/s/AKfycbzzI9GhYNVVg04QkGfUKY2KKqmjcEMNuc8Yc2-HyKvxX5c9qnyjIVr94y74rrc1p5A5/exec";
 const SHEET_APPEND_URL = "https://script.google.com/macros/s/AKfycbzzI9GhYNVVg04QkGfUKY2KKqmjcEMNuc8Yc2-HyKvxX5c9qnyjIVr94y74rrc1p5A5/exec";
 const SHEET_ID = "1SYM9bU00-EkKelZTiWis8xlsl46ByhDSxt7kDlLyenM";
 
@@ -28,12 +28,21 @@ uploadBtn.onclick = async () => {
   formData.append("image", file);
 
   // 1️⃣ AI evaluation
-  const aiRes = await fetch(OPENAI_PROXY_URL, {
-    method: "POST",
-    body: formData
-  });
+const arrayBuffer = await file.arrayBuffer();
 
-  const csvRow = await aiRes.text();
+const aiRes = await fetch(`${OPENAI_PROXY_URL}?action=evaluate`, {
+  method: "POST",
+  body: arrayBuffer
+});
+
+const csvRow = (await aiRes.text()).trim();
+
+// Append
+await fetch(`${SHEET_APPEND_URL}?action=append`, {
+  method: "POST",
+  body: csvRow
+});
+
 
   // 2️⃣ Append to Google Sheet
   await fetch(SHEET_APPEND_URL, {
