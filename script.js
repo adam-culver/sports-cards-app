@@ -1,31 +1,26 @@
 (() => {
-  // ===============================
-  // CONFIG
-  // ===============================
   const OPENAI_PROXY_URL =
     "https://script.google.com/macros/s/AKfycbz0mQu6EYhZqIccIlbVskmM_32N3YaGiAwzRofG87eGqz4SQPC54up0FNMK3xXP87eI/exec";
   const SHEET_ID = "1SYM9bU00-EkKelZTiWis8xlsl46ByhDSxt7kDlLyenM";
 
-  // ===============================
-  // ELEMENTS
-  // ===============================
   const uploadBtn = document.getElementById("uploadBtn");
   const imageInput = document.getElementById("imageInput");
   const statusEl = document.getElementById("status");
   const exportBtn = document.getElementById("exportCsvBtn");
 
-  // ===============================
-  // UI HELPERS
-  // ===============================
+  // Only show "Loaded X row(s)" after a user-initiated upload
+  let showLoadCount = false;
+
   function setStatus(msg, type = "info") {
     if (!statusEl) return;
     statusEl.textContent = msg || "";
     statusEl.dataset.type = type;
   }
 
-  // ===============================
-  // FILE → BASE64
-  // ===============================
+  function clearStatus() {
+    setStatus("", "info");
+  }
+
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -35,15 +30,13 @@
     });
   }
 
-  // ===============================
-  // UPLOAD → INGEST → REFRESH
-  // ===============================
   if (uploadBtn) {
     uploadBtn.addEventListener("click", async () => {
       const file = imageInput?.files?.[0];
       if (!file) return alert("Select an image");
 
       uploadBtn.disabled = true;
+      showLoadCount = true;
       setStatus("Evaluating & saving...", "info");
 
       try {
@@ -62,8 +55,8 @@
           return;
         }
 
-        setStatus(`Saved! ${text}`, "success");
-        setTimeout(loadSheet, 750);
+        setStatus("Saved. Refreshing results…", "success");
+        setTimeout(() => loadSheet({ fromUpload: true }), 750);
       } catch (err) {
         setStatus("ERROR: " + (err?.message || String(err)), "error");
       } finally {
@@ -72,9 +65,6 @@
     });
   }
 
-  // ===============================
-  // GVIZ PARSER (same approach as your old working code)
-  // ===============================
   function parseGvizResponse(text) {
     const payload = text.substring(47).slice(0, -2);
     return JSON.parse(payload);
@@ -106,7 +96,6 @@
         obj[field] = cell ? cell.v : "";
       });
 
-      // numeric coercion for known fields
       if (obj.year !== "" && obj.year != null && !Number.isNaN(Number(obj.year))) obj.year = Number(obj.year);
       if (obj.lowPrice !== "" && obj.lowPrice != null && !Number.isNaN(Number(obj.lowPrice))) obj.lowPrice = Number(obj.lowPrice);
       if (obj.highPrice !== "" && obj.highPrice != null && !Number.isNaN(Number(obj.highPrice))) obj.highPrice = Number(obj.highPrice);
@@ -118,9 +107,6 @@
     return data;
   }
 
-  // ===============================
-  // Normalize fields to exactly what index.html expects
-  // ===============================
   function normalizeRow(row) {
     return {
       id: row.id,
@@ -137,12 +123,10 @@
     };
   }
 
-  // ===============================
-  // LOAD SHEET → TABULATOR
-  // ===============================
-  async function loadSheet() {
+  async function loadSheet({ fromUpload = false } = {}) {
     try {
-      setStatus("Loading results from sheet...", "info");
+      if (fromUpload) setStatus("Loading updated results…", "info");
+      else clearStatus(); // silent on initial load
 
       const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
       const res = await fetch(url, { cache: "no-store" });
@@ -152,33 +136,31 @@
       const rows = gvizToObjects(gviz).map(normalizeRow);
 
       if (!window.cardsTable) {
-        throw new Error("Table not initialized (window.cardsTable missing). Check script order in index.html.");
+        throw new Error("Table not initialized (window.cardsTable missing).");
       }
 
       await Promise.resolve(window.cardsTable.setData(rows));
 
-      // update hint/export and apply filters
       if (typeof window.applyAllFilters === "function") window.applyAllFilters();
-
       if (exportBtn) exportBtn.disabled = rows.length === 0;
 
-      setStatus(rows.length ? `Loaded ${rows.length} row(s).` : "No rows found yet.", rows.length ? "success" : "info");
+      if (fromUpload && showLoadCount) {
+        setStatus(`Loaded ${rows.length} row(s).`, "success");
+        setTimeout(() => clearStatus(), 3000);
+      }
     } catch (err) {
       console.error(err);
       setStatus("ERROR loading sheet: " + (err?.message || String(err)), "error");
     }
   }
 
-  // ===============================
-  // INIT (wait for Tabulator instance created in index.html)
-  // ===============================
   function init() {
     let attempts = 0;
     const timer = setInterval(() => {
       attempts++;
       if (window.cardsTable) {
         clearInterval(timer);
-        loadSheet();
+        loadSheet({ fromUpload: false }); // initial load: silent
         return;
       }
       if (attempts >= 30) {
