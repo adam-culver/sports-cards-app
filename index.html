@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sports Cards Tracker</title>
+  <title>Sports Cards Evaluation</title>
 
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Tabulator (flexible table component) -->
+  <!-- Tabulator -->
   <link
     href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css"
     rel="stylesheet"
@@ -17,7 +17,6 @@
 
 <body>
   <div class="app">
-    <!-- Header -->
     <header class="topbar">
       <div class="brand">
         <div class="logo">🃏</div>
@@ -32,7 +31,6 @@
       </div>
     </header>
 
-    <!-- Upload / Controls -->
     <section class="card">
       <div class="controls">
         <div class="control-group">
@@ -45,53 +43,57 @@
         </div>
 
         <div class="control-group">
-          <label class="label">Search</label>
-          <input type="text" id="searchInput" class="input" placeholder="Search athlete, set, year, sport..." />
+          <label class="label">Search (all fields)</label>
+          <input
+            type="text"
+            id="searchInput"
+            class="input"
+            placeholder="Search athlete, set, year, sport, team..."
+          />
         </div>
 
-        <div class="control-group filters">
-          <div>
-            <label class="label">Sport</label>
-            <select id="sportFilter" class="input">
-              <option value="">All</option>
+        <div class="control-group">
+          <label class="label">Filter any column</label>
+          <div class="universal-filter">
+            <select id="filterField" class="input"></select>
+            <select id="filterType" class="input">
+              <option value="like">contains</option>
+              <option value="=">=</option>
+              <option value="!=">not</option>
+              <option value="<"><</option>
+              <option value="<="><=</option>
+              <option value=">">></option>
+              <option value=">=">>=</option>
             </select>
+            <input id="filterValue" class="input" placeholder='e.g. "Baseball", "2024", "Topps"' />
+            <button id="applyFilterBtn" class="btn btn-secondary">Apply</button>
           </div>
-          <div>
-            <label class="label">Year</label>
-            <select id="yearFilter" class="input">
-              <option value="">All</option>
-            </select>
-          </div>
-          <div class="filter-actions">
+
+          <div class="filter-actions-row">
             <button id="clearFiltersBtn" class="btn btn-ghost">Clear filters</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Results -->
     <section class="card">
       <div class="section-head">
         <h2>Results</h2>
         <div class="hint" id="resultsHint">No results yet — upload an image to start.</div>
       </div>
 
-      <!-- Tabulator mounts here (REPLACES <table>) -->
       <div id="cardsTable"></div>
     </section>
 
     <footer class="footer">
-      <span>Tip: you can sort by clicking column headers.</span>
+      <span>Tip: sort by clicking column headers. Use filters to narrow results.</span>
     </footer>
   </div>
 
-  <!-- Expose config for script.js (so script.js can stay clean) -->
   <script>
-    // Create Tabulator table instance. script.js can call:
-    //   window.cardsTable.setData(rows)
-    //   window.cardsTable.getData()
-    //   window.refreshFilterOptions(rows)
-    // and it will just work.
+    // ---------------------------
+    // Tabulator table
+    // ---------------------------
     window.cardsTable = new Tabulator("#cardsTable", {
       layout: "fitColumns",
       height: "560px",
@@ -101,111 +103,189 @@
       paginationSizeSelector: [10, 25, 50, 100],
       movableColumns: true,
       resizableColumns: true,
-      columns: columns: [
-  { title: "Sport", field: "sport", width: 120 },
-  { title: "League", field: "league", width: 110 },
-  { title: "Year", field: "year", hozAlign: "center", width: 90 },
-  { title: "Card Set", field: "cardSet", minWidth: 240 },
-  { title: "Athlete", field: "athlete", minWidth: 170 },
-  { title: "Team", field: "team", minWidth: 140 },
-  {
-    title: "Low Price",
-    field: "lowPrice",
-    hozAlign: "right",
-    formatter: "money",
-    formatterParams: { symbol: "$", precision: 2 },
-    width: 130,
-  },
-  {
-    title: "High Price",
-    field: "highPrice",
-    hozAlign: "right",
-    formatter: "money",
-    formatterParams: { symbol: "$", precision: 2 },
-    width: 130,
-  },
-  { title: "Quantity", field: "quantity", hozAlign: "center", width: 110 },
-],
-,
+      columns: [
+        { title: "Sport", field: "sport", width: 120 },
+        { title: "League", field: "league", width: 110 },
+        { title: "Year", field: "year", hozAlign: "center", width: 90 },
+        { title: "Card Set", field: "cardSet", minWidth: 240 },
+        { title: "Athlete", field: "athlete", minWidth: 170 },
+        { title: "Team", field: "team", minWidth: 140 },
+        {
+          title: "Low Price",
+          field: "lowPrice",
+          hozAlign: "right",
+          formatter: (cell) => {
+            const v = cell.getValue();
+            if (v === "" || v == null) return "";
+            const n = Number(v);
+            if (Number.isNaN(n)) return v;
+            return `$${n.toFixed(2)}`;
+          },
+          width: 130,
+        },
+        {
+          title: "High Price",
+          field: "highPrice",
+          hozAlign: "right",
+          formatter: (cell) => {
+            const v = cell.getValue();
+            if (v === "" || v == null) return "";
+            const n = Number(v);
+            if (Number.isNaN(n)) return v;
+            return `$${n.toFixed(2)}`;
+          },
+          width: 130,
+        },
+        { title: "Quantity", field: "quantity", hozAlign: "center", width: 110 },
+      ],
     });
 
-    // Filter dropdowns are populated based on current data
-    window.refreshFilterOptions = function(rows) {
-      const sportEl = document.getElementById("sportFilter");
-      const yearEl = document.getElementById("yearFilter");
-
-      const sports = [...new Set((rows || []).map(r => r.sport).filter(Boolean))].sort();
-      const years = [...new Set((rows || []).map(r => r.year).filter(Boolean))].sort((a,b)=>a-b);
-
-      // Preserve current selection if possible
-      const currentSport = sportEl.value;
-      const currentYear = yearEl.value;
-
-      sportEl.innerHTML = `<option value="">All</option>` + sports.map(s => `<option value="${s}">${s}</option>`).join("");
-      yearEl.innerHTML = `<option value="">All</option>` + years.map(y => `<option value="${y}">${y}</option>`).join("");
-
-      if (sports.includes(currentSport)) sportEl.value = currentSport;
-      if (years.map(String).includes(String(currentYear))) yearEl.value = currentYear;
-    };
-
-    // Wiring up UI filters to Tabulator
+    // ---------------------------
+    // UI elements
+    // ---------------------------
     const searchEl = document.getElementById("searchInput");
-    const sportEl = document.getElementById("sportFilter");
-    const yearEl = document.getElementById("yearFilter");
-    const clearBtn = document.getElementById("clearFiltersBtn");
     const exportBtn = document.getElementById("exportCsvBtn");
     const hintEl = document.getElementById("resultsHint");
+    const clearBtn = document.getElementById("clearFiltersBtn");
 
-    function applyFilters() {
-      const q = (searchEl.value || "").toLowerCase().trim();
-      const sport = sportEl.value;
-      const year = yearEl.value;
+    const filterFieldEl = document.getElementById("filterField");
+    const filterTypeEl = document.getElementById("filterType");
+    const filterValueEl = document.getElementById("filterValue");
+    const applyFilterBtn = document.getElementById("applyFilterBtn");
 
+    // ---------------------------
+    // Filter field dropdown options from columns
+    // ---------------------------
+    function populateFilterFields() {
+      const defs = window.cardsTable.getColumns()
+        .map(c => c.getDefinition())
+        .filter(d => d.field && d.title);
+
+      filterFieldEl.innerHTML = defs
+        .map(d => `<option value="${d.field}">${d.title}</option>`)
+        .join("");
+    }
+    populateFilterFields();
+
+    // ---------------------------
+    // Filter state (we manage these explicitly)
+    // ---------------------------
+    function clearAllTableFilters() {
       window.cardsTable.clearFilter(true);
+    }
 
-      // Text search across multiple fields
+    function applySearchFilter() {
+      const q = (searchEl.value || "").trim().toLowerCase();
+
+      // Remove existing search filter by re-clearing all and re-adding needed filters.
+      // We'll rebuild all filters from current UI state in applyAllFilters().
+      return q;
+    }
+
+    function applyUniversalFilter(q) {
+      const field = filterFieldEl.value;
+      const type = filterTypeEl.value;
+      const raw = (filterValueEl.value || "").trim();
+
+      if (!raw) return null;
+
+      // numeric coercion if possible and operator is numeric-ish
+      let value = raw;
+      if (["<", "<=", ">", ">=", "=", "!="].includes(type)) {
+        const asNum = Number(raw);
+        if (!Number.isNaN(asNum)) value = asNum;
+      }
+
+      return { field, type, raw, value };
+    }
+
+    // This is the single source of truth for filters.
+    function applyAllFilters() {
+      clearAllTableFilters();
+
+      const q = applySearchFilter();
+      const uni = applyUniversalFilter(q);
+
+      // Search across all displayed fields
       if (q) {
         window.cardsTable.addFilter((data) => {
           const blob = [
-            data.cardType,
-            data.athlete,
             data.sport,
+            data.league,
             data.year,
-            data.source,
+            data.cardSet,
+            data.athlete,
+            data.team,
+            data.lowPrice,
+            data.highPrice,
+            data.quantity,
           ].join(" ").toLowerCase();
           return blob.includes(q);
         });
       }
 
-      if (sport) window.cardsTable.addFilter("sport", "=", sport);
-      if (year) window.cardsTable.addFilter("year", "=", Number(year));
+      // Universal filter (any column)
+      if (uni) {
+        window.cardsTable.addFilter((data) => {
+          const cell = data[uni.field];
 
-      const count = window.cardsTable.getDataCount("active");
-      hintEl.textContent = count ? `${count} result(s) shown.` : `No matches—try clearing filters.`;
+          if (uni.type === "like") {
+            return String(cell ?? "").toLowerCase().includes(String(uni.raw).toLowerCase());
+          }
 
-      // Enable export only if there is data
-      exportBtn.disabled = window.cardsTable.getDataCount() === 0;
+          const leftNum = Number(cell);
+          const rightNum = Number(uni.value);
+          const bothNumbers = !Number.isNaN(leftNum) && !Number.isNaN(rightNum);
+
+          const left = bothNumbers ? leftNum : String(cell ?? "");
+          const right = bothNumbers ? rightNum : String(uni.value ?? "");
+
+          switch (uni.type) {
+            case "=": return left === right;
+            case "!=": return left !== right;
+            case "<": return left < right;
+            case "<=": return left <= right;
+            case ">": return left > right;
+            case ">=": return left >= right;
+            default: return true;
+          }
+        });
+      }
+
+      const shown = window.cardsTable.getDataCount("active");
+      const total = window.cardsTable.getDataCount();
+      hintEl.textContent = total
+        ? `${shown} result(s) shown.`
+        : `No results yet — upload an image to start.`;
+
+      exportBtn.disabled = total === 0;
     }
 
-    searchEl.addEventListener("input", applyFilters);
-    sportEl.addEventListener("change", applyFilters);
-    yearEl.addEventListener("change", applyFilters);
+    // Expose for script.js to call after setData()
+    window.applyAllFilters = applyAllFilters;
+
+    // UI events
+    searchEl.addEventListener("input", applyAllFilters);
+    applyFilterBtn.addEventListener("click", applyAllFilters);
+    filterValueEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") applyAllFilters();
+    });
 
     clearBtn.addEventListener("click", () => {
       searchEl.value = "";
-      sportEl.value = "";
-      yearEl.value = "";
-      applyFilters();
+      filterValueEl.value = "";
+      filterTypeEl.value = "like";
+      applyAllFilters();
     });
 
     exportBtn.addEventListener("click", () => {
       window.cardsTable.download("csv", "sports-cards-evaluation.csv");
     });
 
-    // Helpful hook: when script.js sets data, it should also call applyFilters().
-    window.applyFilters = applyFilters;
+    // Initialize hint/export state
+    applyAllFilters();
   </script>
 
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>
