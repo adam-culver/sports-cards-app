@@ -386,6 +386,47 @@
     renderChips();
     applyAllFilters();
   </script>
+// ---------------------------
+// Mobile: make table height fit viewport to avoid scroll fighting
+// ---------------------------
+function setTableHeightForViewport() {
+  if (!window.cardsTable) return;
+
+  // only apply on phones
+  const isMobile = window.matchMedia("(max-width: 720px)").matches;
+  if (!isMobile) {
+    // restore desktop-friendly height
+    window.cardsTable.setHeight("560px");
+    return;
+  }
+
+  const tableEl = document.getElementById("cardsTable");
+  if (!tableEl) return;
+
+  // distance from top of viewport to the table
+  const rect = tableEl.getBoundingClientRect();
+  const top = rect.top;
+
+  // leave a little space for bottom padding / iOS browser chrome
+  const buffer = 18;
+
+  // choose a minimum so it never collapses too small
+  const min = 260;
+
+  const available = Math.max(min, Math.floor(window.innerHeight - top - buffer));
+  window.cardsTable.setHeight(available + "px");
+}
+
+window.addEventListener("resize", setTableHeightForViewport);
+window.addEventListener("orientationchange", setTableHeightForViewport);
+setTimeout(setTableHeightForViewport, 0);
+
+// Also run after data loads (script.js calls applyAllFilters; we can hook here)
+const _applyAll = window.applyAllFilters;
+window.applyAllFilters = function() {
+  if (typeof _applyAll === "function") _applyAll();
+  setTableHeightForViewport();
+};
 
   <script src="script.js?v=7"></script>
 </body>
