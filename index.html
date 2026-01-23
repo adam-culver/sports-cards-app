@@ -5,9 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sports Cards Evaluation</title>
 
+  <!-- Roboto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Favicon bundle (put these files in your repo root) -->
+  <!-- Favicon bundle (root) -->
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
@@ -21,23 +26,16 @@
     rel="stylesheet"
   />
   <script src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
-  <link rel="icon" href="favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 </head>
 
 <body>
   <div class="app">
     <header class="topbar">
-       <div class="brand no-logo"><div>
-    <h1>Sports Cards Evaluation</h1>
-    <p class="subtitle">Upload a card image, detect details, and estimate value ranges.</p>
-  </div>
-</div>
-
+      <div class="brand no-logo">
+        <div>
+          <h1>Sports Cards Evaluation</h1>
+          <p class="subtitle">Upload a card image, detect details, and estimate value ranges.</p>
+        </div>
       </div>
 
       <div class="topbar-actions">
@@ -92,7 +90,8 @@
       </div>
     </section>
 
-  <div class="spacer"></div>
+    <!-- extra padding between sections -->
+    <div class="spacer"></div>
 
     <section class="card">
       <div class="section-head">
@@ -113,21 +112,22 @@
     // Tabulator table
     // ---------------------------
     window.cardsTable = new Tabulator("#cardsTable", {
-      layout: "fitColumns",
+      layout: "fitData",                 // width depends on content
+      responsiveLayout: "scroll",        // allow horizontal scroll on small screens
       height: "560px",
       placeholder: "Upload an image to see evaluated cards here.",
       pagination: "local",
-      paginationSize: 25,
-      paginationSizeSelector: [10, 25, 50, 100],
+      paginationSize: 100,               // default page size
+      paginationSizeSelector: [10, 25, 50, 100, 250],
       movableColumns: true,
       resizableColumns: true,
       columns: [
-        { title: "Sport", field: "sport", width: 120 },
-        { title: "League", field: "league", width: 110 },
-        { title: "Year", field: "year", hozAlign: "center", width: 90 },
-        { title: "Card Set", field: "cardSet", minWidth: 240 },
-        { title: "Athlete", field: "athlete", minWidth: 170 },
-        { title: "Team", field: "team", minWidth: 140 },
+        { title: "Sport", field: "sport" },
+        { title: "League", field: "league" },
+        { title: "Year", field: "year", hozAlign: "center" },
+        { title: "Card Set", field: "cardSet" },
+        { title: "Athlete", field: "athlete" },
+        { title: "Team", field: "team" },
         {
           title: "Low Price",
           field: "lowPrice",
@@ -139,7 +139,6 @@
             if (Number.isNaN(n)) return v;
             return `$${n.toFixed(2)}`;
           },
-          width: 130,
         },
         {
           title: "High Price",
@@ -152,9 +151,8 @@
             if (Number.isNaN(n)) return v;
             return `$${n.toFixed(2)}`;
           },
-          width: 130,
         },
-        { title: "Quantity", field: "quantity", hozAlign: "center", width: 110 },
+        { title: "Quantity", field: "quantity", hozAlign: "center" },
       ],
     });
 
@@ -207,7 +205,6 @@
 
     function renderChips() {
       chipsEl.innerHTML = "";
-
       chipFilters.forEach(f => {
         const chip = document.createElement("button");
         chip.type = "button";
@@ -342,6 +339,6 @@
     applyAllFilters();
   </script>
 
-  <script src="script.js?v=6"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>
