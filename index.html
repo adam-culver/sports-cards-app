@@ -7,6 +7,14 @@
 
   <link rel="stylesheet" href="style.css" />
 
+  <!-- Favicon bundle (put these files in your repo root) -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
   <!-- Tabulator -->
   <link
     href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css"
@@ -48,12 +56,13 @@
             type="text"
             id="searchInput"
             class="input"
-            placeholder="Search athlete, set, year, sport, team..."
+            placeholder='Try: "1974 Dolphins" or "NBA Jordan"'
           />
         </div>
 
         <div class="control-group">
-          <label class="label">Filter any column</label>
+          <label class="label">Filters (add multiple)</label>
+
           <div class="universal-filter">
             <select id="filterField" class="input"></select>
             <select id="filterType" class="input">
@@ -65,12 +74,13 @@
               <option value=">">></option>
               <option value=">=">>=</option>
             </select>
-            <input id="filterValue" class="input" placeholder='e.g. "Baseball", "2024", "Topps"' />
-            <button id="applyFilterBtn" class="btn btn-secondary">Apply</button>
+            <input id="filterValue" class="input" placeholder='e.g. "Dolphins", "1974", "Jordan"' />
+            <button id="addFilterBtn" class="btn btn-secondary">Add</button>
           </div>
 
-          <div class="filter-actions-row">
-            <button id="clearFiltersBtn" class="btn btn-ghost">Clear filters</button>
+          <div class="chips-row">
+            <div id="filterChips" class="chips"></div>
+            <button id="clearFiltersBtn" class="btn btn-ghost">Clear all</button>
           </div>
         </div>
       </div>
@@ -86,7 +96,7 @@
     </section>
 
     <footer class="footer">
-      <span>Tip: sort by clicking column headers. Use filters to narrow results.</span>
+      <span>Tip: sort by clicking column headers. Use multiple filters for precise matching.</span>
     </footer>
   </div>
 
@@ -146,16 +156,23 @@
     const searchEl = document.getElementById("searchInput");
     const exportBtn = document.getElementById("exportCsvBtn");
     const hintEl = document.getElementById("resultsHint");
-    const clearBtn = document.getElementById("clearFiltersBtn");
 
     const filterFieldEl = document.getElementById("filterField");
     const filterTypeEl = document.getElementById("filterType");
     const filterValueEl = document.getElementById("filterValue");
-    const applyFilterBtn = document.getElementById("applyFilterBtn");
+    const addFilterBtn = document.getElementById("addFilterBtn");
+    const chipsEl = document.getElementById("filterChips");
+    const clearAllBtn = document.getElementById("clearFiltersBtn");
 
     // ---------------------------
-    // Filter field dropdown options from columns
+    // Filter chips state
     // ---------------------------
+    let chipFilters = []; // {id, field, title, type, raw, value}
+
+    function uid() {
+      return Math.random().toString(16).slice(2) + Date.now().toString(16);
+    }
+
     function populateFilterFields() {
       const defs = window.cardsTable.getColumns()
         .map(c => c.getDefinition())
@@ -167,80 +184,124 @@
     }
     populateFilterFields();
 
-    // ---------------------------
-    // Filter state (we manage these explicitly)
-    // ---------------------------
-    function clearAllTableFilters() {
-      window.cardsTable.clearFilter(true);
+    function operatorLabel(type) {
+      switch(type){
+        case "like": return "contains";
+        case "=": return "=";
+        case "!=": return "≠";
+        case "<": return "<";
+        case "<=": return "≤";
+        case ">": return ">";
+        case ">=": return "≥";
+        default: return type;
+      }
     }
 
-    function applySearchFilter() {
-      const q = (searchEl.value || "").trim().toLowerCase();
+    function renderChips() {
+      chipsEl.innerHTML = "";
 
-      // Remove existing search filter by re-clearing all and re-adding needed filters.
-      // We'll rebuild all filters from current UI state in applyAllFilters().
-      return q;
+      chipFilters.forEach(f => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.title = "Click to remove";
+        chip.innerHTML = `
+          <span class="chip-text">${f.title} ${operatorLabel(f.type)} "${f.raw}"</span>
+          <span class="chip-x">×</span>
+        `;
+        chip.addEventListener("click", () => {
+          chipFilters = chipFilters.filter(x => x.id !== f.id);
+          renderChips();
+          applyAllFilters();
+        });
+        chipsEl.appendChild(chip);
+      });
     }
 
-    function applyUniversalFilter(q) {
+    function buildFilterFromUI() {
       const field = filterFieldEl.value;
+      const title = filterFieldEl.options[filterFieldEl.selectedIndex]?.text || field;
       const type = filterTypeEl.value;
       const raw = (filterValueEl.value || "").trim();
-
       if (!raw) return null;
 
-      // numeric coercion if possible and operator is numeric-ish
       let value = raw;
       if (["<", "<=", ">", ">=", "=", "!="].includes(type)) {
         const asNum = Number(raw);
         if (!Number.isNaN(asNum)) value = asNum;
       }
-
-      return { field, type, raw, value };
+      return { id: uid(), field, title, type, raw, value };
     }
 
-    // This is the single source of truth for filters.
+    // Add chip
+    addFilterBtn.addEventListener("click", () => {
+      const f = buildFilterFromUI();
+      if (!f) return;
+
+      chipFilters.push(f);
+      filterValueEl.value = "";
+      renderChips();
+      applyAllFilters();
+      filterValueEl.focus();
+    });
+
+    // Enter to add chip
+    filterValueEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addFilterBtn.click();
+    });
+
+    // Clear all filters
+    clearAllBtn.addEventListener("click", () => {
+      searchEl.value = "";
+      filterValueEl.value = "";
+      filterTypeEl.value = "like";
+      chipFilters = [];
+      renderChips();
+      applyAllFilters();
+    });
+
+    // Export
+    exportBtn.addEventListener("click", () => {
+      window.cardsTable.download("csv", "sports-cards-evaluation.csv");
+    });
+
+    // ---------------------------
+    // Filter application (single source of truth)
+    // ---------------------------
     function applyAllFilters() {
-      clearAllTableFilters();
+      window.cardsTable.clearFilter(true);
 
-      const q = applySearchFilter();
-      const uni = applyUniversalFilter(q);
+      const q = (searchEl.value || "").trim().toLowerCase();
 
-      // Search across all displayed fields
+      // Global search across all fields
       if (q) {
         window.cardsTable.addFilter((data) => {
           const blob = [
-            data.sport,
-            data.league,
-            data.year,
-            data.cardSet,
-            data.athlete,
-            data.team,
-            data.lowPrice,
-            data.highPrice,
-            data.quantity,
+            data.sport, data.league, data.year,
+            data.cardSet, data.athlete, data.team,
+            data.lowPrice, data.highPrice, data.quantity
           ].join(" ").toLowerCase();
           return blob.includes(q);
         });
       }
 
-      // Universal filter (any column)
-      if (uni) {
+      // AND all chip filters
+      chipFilters.forEach(f => {
         window.cardsTable.addFilter((data) => {
-          const cell = data[uni.field];
+          const cell = data[f.field];
 
-          if (uni.type === "like") {
-            return String(cell ?? "").toLowerCase().includes(String(uni.raw).toLowerCase());
+          if (f.type === "like") {
+            return String(cell ?? "").toLowerCase().includes(String(f.raw).toLowerCase());
           }
 
           const leftNum = Number(cell);
-          const rightNum = Number(uni.value);
+          const rightNum = Number(f.value);
           const bothNumbers = !Number.isNaN(leftNum) && !Number.isNaN(rightNum);
 
           const left = bothNumbers ? leftNum : String(cell ?? "");
-          const right = bothNumbers ? rightNum : String(uni.value ?? "");
+          const right = bothNumbers ? rightNum : String(f.value ?? "");
 
-          switch (uni.type) {
+          switch (f.type) {
             case "=": return left === right;
             case "!=": return left !== right;
             case "<": return left < right;
@@ -250,10 +311,11 @@
             default: return true;
           }
         });
-      }
+      });
 
       const shown = window.cardsTable.getDataCount("active");
       const total = window.cardsTable.getDataCount();
+
       hintEl.textContent = total
         ? `${shown} result(s) shown.`
         : `No results yet — upload an image to start.`;
@@ -261,31 +323,17 @@
       exportBtn.disabled = total === 0;
     }
 
-    // Expose for script.js to call after setData()
+    // Expose so script.js can call after setData()
     window.applyAllFilters = applyAllFilters;
 
-    // UI events
+    // Keep search live
     searchEl.addEventListener("input", applyAllFilters);
-    applyFilterBtn.addEventListener("click", applyAllFilters);
-    filterValueEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") applyAllFilters();
-    });
 
-    clearBtn.addEventListener("click", () => {
-      searchEl.value = "";
-      filterValueEl.value = "";
-      filterTypeEl.value = "like";
-      applyAllFilters();
-    });
-
-    exportBtn.addEventListener("click", () => {
-      window.cardsTable.download("csv", "sports-cards-evaluation.csv");
-    });
-
-    // Initialize hint/export state
+    // Initial
+    renderChips();
     applyAllFilters();
   </script>
 
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>
