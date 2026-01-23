@@ -162,7 +162,20 @@
         headerSort: false,
         hozAlign: "center",
         width: 120,
-        formatter: () => `<button class="btn btn-ghost btn-mini" type="button">Images</button>`,
+        formatter: () => `
+  <button
+    class="icon-btn"
+    type="button"
+    title="Search Google Images"
+    aria-label="Search Google Images"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+      <line x1="16.65" y1="16.65" x2="21" y2="21"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+`,
         cellClick: (e, cell) => {
           const d = cell.getRow().getData();
           const q = googleImagesQueryFromRow(d);
