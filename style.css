@@ -297,140 +297,111 @@ input[type="file"]{
   overflow: hidden;
 }
 
-/* ---------------------------
-   TABULATOR – requested styling
-   --------------------------- */
+/* =========================================
+   TABULATOR FINAL OVERRIDES (paste at bottom)
+   ========================================= */
 
+/* single-color brand blue (left side of gradient vibe) */
+:root{
+  --tab-blue: #1A73E8; /* tweak if you want slightly more/less saturated */
+  --tab-blue-dark: #1558C0;
+  --tab-cream: #FEFEFA;
+}
+
+/* Table surface */
 .tabulator{
-  border: 1px solid rgba(255,255,255,0.40);
-  background: rgba(255,255,255,0.45);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(255,255,255,0.35) !important;
 }
 
-/* Header row = upload button gradient, bold white text */
+/* ✅ BODY CELLS to #FEFEFA */
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row{
+  background: var(--tab-cream) !important;
+}
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row:nth-child(even){
+  background: var(--tab-cream) !important;
+}
+
+/* subtle “grey-ish white” borders */
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row{
+  border-bottom: 1px solid rgba(255,255,255,0.22) !important;
+}
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-cell{
+  border-right: 1px solid rgba(255,255,255,0.22) !important;
+}
+
+/* ✅ Hover matches header blue */
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row:hover{
+  background: rgba(26,115,232,0.10) !important;
+}
+
+/* ===============================
+   HEADER (this is what was missing)
+   =============================== */
 .tabulator .tabulator-header{
-  background: var(--brandGrad);
-  border-bottom: 1px solid rgba(255,255,255,0.20);
+  background: var(--tab-blue) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.25) !important;
 }
 
-.tabulator .tabulator-col{
-  background: transparent;
-  border-right: 1px solid rgba(255,255,255,0.16); /* subtle vertical separators */
+/* Each header cell also needs forcing */
+.tabulator .tabulator-header .tabulator-col{
+  background: var(--tab-blue) !important;
+  border-right: 1px solid rgba(255,255,255,0.20) !important;
 }
 
-.tabulator .tabulator-col-title,
-.tabulator .tabulator-col-title-holder{
-  color: rgba(255,255,255,0.98);
-  font-weight: 900;
-  letter-spacing: -0.01em;
+/* Header text */
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title{
+  color: rgba(255,255,255,0.98) !important;
+  font-weight: 900 !important;
 }
 
-/* Make sort arrows visible on dark header */
-.tabulator .tabulator-col .tabulator-arrow{
-  border-bottom-color: rgba(255,255,255,0.95) !important;
+/* Sort arrows visible on blue */
+.tabulator .tabulator-header .tabulator-arrow{
   border-top-color: rgba(255,255,255,0.95) !important;
-  opacity: 0.9;
+  border-bottom-color: rgba(255,255,255,0.95) !important;
+  opacity: 0.95 !important;
 }
 
-/* Body gridlines: subtle grey-ish white */
-.tabulator .tabulator-row{
-  background: rgba(255,255,255,0.62);
-  border-bottom: 1px solid var(--grid2);
-}
-
-.tabulator .tabulator-row:nth-child(even){
-  background: rgba(255,255,255,0.54);
-}
-
-/* Hover matches header blue */
-.tabulator .tabulator-row:hover{
-  background: var(--brandHover);
-}
-
-/* Cells: subtle borders + breathing room */
-.tabulator .tabulator-cell{
-  padding: 12px 14px;
-  border-right: 1px solid var(--grid);
-}
-
-/* Long fields */
-.cell-ellipsis{
-  display: block;
-  max-width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-/* Placeholder */
-.tabulator-placeholder{
-  color: rgba(20,25,35,0.55);
-  font-size: 1rem;
-  background: transparent;
-}
-
-/* Footer row (Page Size) matches header styling */
+/* ===============================
+   FOOTER / PAGINATION BAR
+   =============================== */
 .tabulator .tabulator-footer{
-  background: var(--brandGrad);
-  border-top: 1px solid rgba(255,255,255,0.20);
-  color: rgba(255,255,255,0.98);
+  background: var(--tab-blue) !important;
+  border-top: 1px solid rgba(255,255,255,0.25) !important;
 }
 
-/* Move pagination controls to the right */
+/* ✅ Make ALL footer text bold white */
+.tabulator .tabulator-footer,
+.tabulator .tabulator-footer *{
+  color: rgba(255,255,255,0.98) !important;
+  font-weight: 900 !important;
+}
+
+/* Dropdown styling on blue */
+.tabulator .tabulator-footer select{
+  background: rgba(255,255,255,0.18) !important;
+  border: 1px solid rgba(255,255,255,0.55) !important;
+  color: rgba(255,255,255,0.98) !important;
+}
+
+/* Pagination buttons on blue */
+.tabulator .tabulator-paginator button{
+  background: rgba(255,255,255,0.18) !important;
+  border: 1px solid rgba(255,255,255,0.55) !important;
+  color: rgba(255,255,255,0.98) !important;
+}
+.tabulator .tabulator-paginator button:hover{
+  background: rgba(255,255,255,0.30) !important;
+}
+
+/* Keep paginator right aligned & prevent page size stretching */
 .tabulator .tabulator-footer .tabulator-paginator{
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
 }
-
-/* Make page size control not stretch */
 .tabulator .tabulator-footer .tabulator-page-size{
   width: auto !important;
   flex: 0 0 auto !important;
-}
-
-/* Shrink dropdown to content */
-.tabulator .tabulator-footer select{
-  width: auto !important;
-  min-width: 64px; /* enough for 100/250 */
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.55);
-  background: rgba(255,255,255,0.18);
-  color: rgba(255,255,255,0.98);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* Buttons in footer */
-.tabulator .tabulator-paginator button{
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.55);
-  background: rgba(255,255,255,0.18);
-  color: rgba(255,255,255,0.98);
-  padding: 6px 10px;
-  margin: 0;
-}
-
-.tabulator .tabulator-paginator button:hover{
-  background: rgba(255,255,255,0.28);
-}
-
-/* Responsive */
-@media (max-width: 980px){
-  .controls{ grid-template-columns: 1fr; }
-  .universal-filter{ grid-template-columns: 1fr; }
-
-  .topbar{
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .topbar-actions{
-    width: 100%;
-    justify-content: flex-start;
-  }
 }
