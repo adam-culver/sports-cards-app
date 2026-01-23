@@ -30,7 +30,7 @@ await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
   mode: "no-cors"
 });
 
-statusEl.textContent = "Saved! Refreshing table...";
+statusEl.textContent = "Evaluating & saving...";
 
 // Give Apps Script a moment to finish
 setTimeout(loadSheet, 1500);
