@@ -1,8 +1,8 @@
 // ===============================
 // CONFIG — CHANGE THESE
 // ===============================
-const OPENAI_PROXY_URL = "https://script.google.com/macros/s/AKfycbzEM_EiAcKkXDhAxjSgcKNnr6-gFDwzBECxWXt-ioQKJZlcotJQryar1G4D9ac6YubE/exec";
-const SHEET_APPEND_URL = "https://script.google.com/macros/s/AKfycbzEM_EiAcKkXDhAxjSgcKNnr6-gFDwzBECxWXt-ioQKJZlcotJQryar1G4D9ac6YubE/exec";
+const OPENAI_PROXY_URL = "https://script.google.com/macros/s/AKfycbzqzZDTUFdsIdBOnlKkQZPkuPx0eBFh3Y6igLjrPFwToT-bgyY5Bde15ivGQQY2FvJ-/exec";
+const SHEET_APPEND_URL = "https://script.google.com/macros/s/AKfycbzqzZDTUFdsIdBOnlKkQZPkuPx0eBFh3Y6igLjrPFwToT-bgyY5Bde15ivGQQY2FvJ-/exec";
 const SHEET_ID = "1SYM9bU00-EkKelZTiWis8xlsl46ByhDSxt7kDlLyenM";
 
 // ===============================
