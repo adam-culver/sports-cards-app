@@ -34,22 +34,27 @@ uploadBtn.onclick = async () => {
   const file = imageInput.files[0];
   if (!file) return alert("Select an image");
 
-  statusEl.textContent = "Evaluating & saving...";
+statusEl.textContent = "Evaluating & saving...";
 
-  const base64 = await fileToBase64(file);
+const base64 = await fileToBase64(file);
 
-  try {
-    const res = await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
+const res = await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
   method: "POST",
   headers: { "Content-Type": "text/plain" },
   body: base64
 });
 
 const text = await res.text();
+
 if (!res.ok || text.startsWith("ERROR")) {
   statusEl.textContent = text;
+  console.error(text);
   return;
 }
+
+statusEl.textContent = "Saved! Refreshing table...";
+setTimeout(loadSheet, 2000);
+
 
 
     // Show errors directly
