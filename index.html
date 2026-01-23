@@ -138,7 +138,20 @@
       { title: "League", field: "league", width: 110, responsive: 5 },
 
       { title: "Qty", field: "quantity", hozAlign: "center", width: 80, sorter: "number", responsive: 6 },
-    ];
+      {
+    title: "Search",
+    field: "_img",
+    headerSort: false,
+    hozAlign: "center",
+    width: 110,
+    formatter: () => `<button class="btn btn-ghost btn-mini" type="button">Images</button>`,
+    cellClick: (e, cell) => {
+      const d = cell.getRow().getData();
+      const qParts = [d.year, d.cardSet, d.athlete, d.team, d.league, d.sport, "trading card"].filter(Boolean);
+      const q = encodeURIComponent(qParts.join(" "));
+      window.open(`https://www.google.com/search?tbm=isch&q=${q}`, "_blank", "noopener,noreferrer");
+    },
+  ];
 
     window.cardsTable = new Tabulator("#cardsTable", {
       layout: "fitColumns",
