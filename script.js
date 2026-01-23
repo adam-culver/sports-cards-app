@@ -3,7 +3,7 @@
 // ===============================
 const OPENAI_PROXY_URL = "YOUR_APPS_SCRIPT_PROXY_URL";
 const SHEET_APPEND_URL = "YOUR_APPS_SCRIPT_APPEND_URL";
-const SHEET_ID = "YOUR_GOOGLE_SHEET_ID";
+const SHEET_ID = "https://docs.google.com/spreadsheets/d/1Z6JEC3_n5C2ODaYEngJmNqo7mPXThqpJeoSF6UBzIBg/edit#gid=0";
 
 // ===============================
 // ELEMENTS
