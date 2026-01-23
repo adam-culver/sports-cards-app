@@ -31,48 +31,38 @@ function fileToBase64(file) {
 }
 
 uploadBtn.onclick = async () => {
-  if (uploadBtn.disabled) return; // safety guard
+  const file = imageInput.files[0];
+  if (!file) return alert("Select an image");
 
   uploadBtn.disabled = true;
-  uploadBtn.textContent = "Processing...";
+  statusEl.textContent = "Evaluating & saving...";
 
   try {
-    const file = imageInput.files[0];
-    if (!file) {
-      alert("Select an image");
-      return;
-    }
-
-    statusEl.textContent = "Evaluating & saving...";
-
     const base64 = await fileToBase64(file);
 
     const res = await fetch(`${OPENAI_PROXY_URL}?action=ingest`, {
-  method: "POST",
-  headers: { "Content-Type": "text/plain" },
-  body: base64
-});
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: base64
+    });
 
-const text = await res.text();
+    const text = await res.text();
 
-if (!res.ok || text.startsWith("ERROR")) {
-  statusEl.textContent = text;
-  uploadBtn.disabled = false;
-  return;
-}
+    if (!res.ok || text.startsWith("ERROR")) {
+      statusEl.textContent = text;
+      return;
+    }
 
-statusEl.textContent = `Saved! ${text}`;
-setTimeout(loadSheet, 1000);
-
+    statusEl.textContent = `Saved! ${text}`;
+    setTimeout(loadSheet, 750);
 
   } catch (err) {
-    console.error(err);
-    statusEl.textContent = "Unexpected error. Check console.";
+    statusEl.textContent = "ERROR: " + (err?.message || String(err));
   } finally {
     uploadBtn.disabled = false;
-    uploadBtn.textContent = "Upload & Evaluate";
   }
 };
+
 
 
 
