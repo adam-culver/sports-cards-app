@@ -405,3 +405,9 @@ input[type="file"]{
   width: auto !important;
   flex: 0 0 auto !important;
 }
+
+.btn-mini{
+  padding: 7px 12px;
+  font-weight: 900;
+  font-size: 0.85rem;
+}
