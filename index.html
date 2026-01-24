@@ -130,7 +130,7 @@
     // - No responsive priorities
     // ---------------------------
     const TABLE_COLUMNS = [
-      { title: "Sport", field: "sport", minWidth: 80, formatter: ellipsisFormatter },
+      { title: "Sport", field: "sport", minWidth: 40, formatter: ellipsisFormatter },
       { title: "League", field: "league", minWidth: 80, formatter: ellipsisFormatter },
       { title: "Year", field: "year", width: 70, sorter: "number" },
       { title: "Card Set", field: "cardSet", minWidth: 200, widthGrow: 4, formatter: ellipsisFormatter },
@@ -163,17 +163,11 @@
       },
     ];
 
-    // ---------------------------
-    // Tabulator init
-    // KEY FIXES:
-    // 1) responsiveLayout: false  -> DO NOT HIDE COLUMNS
-    // 2) mobile layout fitData     -> horizontal scroll to see everything
-    // ---------------------------
     const isMobile = window.matchMedia("(max-width: 720px)").matches;
 
     window.cardsTable = new Tabulator("#cardsTable", {
       layout: isMobile ? "fitData" : "fitColumns",
-      responsiveLayout: false,            // ✅ critical: never auto-hide columns
+      responsiveLayout: false,
       height: "560px",
       placeholder: "Upload an image to see evaluated cards here.",
       pagination: "local",
@@ -363,7 +357,7 @@
 
       const rect = tableEl.getBoundingClientRect();
       const buffer = 18;   // leave tiny breathing room
-      const min = 520;     // ✅ taller by default than before
+      const min = 520;     // taller by default than before
 
       const available = Math.max(min, Math.floor(window.innerHeight - rect.top - buffer));
       window.cardsTable.setHeight(available + "px");
