@@ -130,24 +130,24 @@
     // - No responsive priorities
     // ---------------------------
     const TABLE_COLUMNS = [
-      { title: "Sport", field: "sport", minWidth: 120, formatter: ellipsisFormatter },
-      { title: "League", field: "league", minWidth: 110, formatter: ellipsisFormatter },
-      { title: "Year", field: "year", hozAlign: "center", width: 90, sorter: "number" },
-      { title: "Card Set", field: "cardSet", minWidth: 240, widthGrow: 4, formatter: ellipsisFormatter },
+      { title: "Sport", field: "sport", minWidth: 80, formatter: ellipsisFormatter },
+      { title: "League", field: "league", minWidth: 80, formatter: ellipsisFormatter },
+      { title: "Year", field: "year", width: 70, sorter: "number" },
+      { title: "Card Set", field: "cardSet", minWidth: 200, widthGrow: 4, formatter: ellipsisFormatter },
       { title: "Athlete", field: "athlete", minWidth: 200, widthGrow: 3, formatter: ellipsisFormatter },
       { title: "Team", field: "team", minWidth: 160, widthGrow: 2, formatter: ellipsisFormatter },
-      { title: "Low", field: "lowPrice", hozAlign: "right", width: 110, sorter: "number", formatter: moneyFormatter },
-      { title: "High", field: "highPrice", hozAlign: "right", width: 110, sorter: "number", formatter: moneyFormatter },
-      { title: "Qty", field: "quantity", hozAlign: "center", width: 80, sorter: "number" },
+      { title: "Low", field: "lowPrice", hozAlign: "right", width: 80, sorter: "number", formatter: moneyFormatter },
+      { title: "High", field: "highPrice", hozAlign: "right", width: 80, sorter: "number", formatter: moneyFormatter },
+      { title: "Qty", field: "quantity", width: 60, sorter: "number" },
       {
         title: "",
         field: "_images",
         headerSort: false,
         hozAlign: "center",
-        width: 64,
+        width: 60,
         formatter: () => `
           <button class="icon-btn" type="button" title="Search Google Images" aria-label="Search Google Images">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
               <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
               <line x1="16.65" y1="16.65" x2="21" y2="21"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
