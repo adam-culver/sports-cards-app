@@ -11,7 +11,6 @@
   --radius: 18px;
   --focus: rgba(0, 122, 255, 0.25);
 
-  /* Table brand */
   --tab-blue: #1A73E8;
   --tab-cream: #FEFEFA;
 }
@@ -58,12 +57,6 @@ body::before{
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
-}
-
-.brand{
-  display: flex;
-  align-items: center;
-  gap: 14px;
 }
 
 .brand.no-logo{ gap: 0; }
@@ -203,10 +196,6 @@ input[type="file"]{
   box-shadow: 0 14px 30px rgba(0,122,255,0.22);
 }
 
-.btn-primary:hover{
-  box-shadow: 0 18px 40px rgba(0,122,255,0.28);
-}
-
 .btn-secondary{
   color: var(--text);
   background: rgba(255,255,255,0.65);
@@ -228,10 +217,6 @@ input[type="file"]{
   font-size: 0.92rem;
   color: var(--muted);
 }
-
-.status[data-type="success"]{ color: rgba(15, 123, 58, 0.92); }
-.status[data-type="error"]{ color: rgba(176, 0, 32, 0.92); }
-.status[data-type="info"]{ color: var(--muted); }
 
 .universal-filter{
   display: grid;
@@ -271,8 +256,6 @@ input[type="file"]{
   font-weight: 700;
 }
 
-.chip:hover{ background: rgba(255,255,255,0.75); }
-
 .chip-text{
   color: rgba(20,25,35,0.88);
   font-size: 0.92rem;
@@ -290,49 +273,6 @@ input[type="file"]{
   line-height: 1;
 }
 
-/* Mobile collapsible controls header */
-.controls-toggle{
-  display: none; /* desktop hidden */
-  width: 100%;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  padding: 0;
-  margin: 0 0 10px 0;
-  text-align: left;
-}
-
-.controls-toggle-title{
-  display: block;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  color: rgba(20,25,35,0.92);
-}
-
-.controls-toggle-subtitle{
-  display: block;
-  font-size: 0.88rem;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-.controls-toggle-caret{
-  float: right;
-  margin-top: -28px;
-  font-weight: 900;
-  color: rgba(20,25,35,0.70);
-  transform-origin: center;
-  transition: transform 0.15s ease;
-}
-
-.controls-toggle.is-collapsed .controls-toggle-caret{
-  transform: rotate(-90deg);
-}
-
-.controls-body.is-collapsed{
-  display: none;
-}
-
 /* Table container */
 #cardsTable{
   border-radius: var(--radius);
@@ -348,134 +288,79 @@ input[type="file"]{
   white-space: nowrap;
 }
 
-/* Icon-only button (table) - minimalist & visible on light cells */
+/* Icon-only button (table) */
 .icon-btn{
   appearance: none;
   border: 1px solid rgba(0,0,0,0.08);
   background: rgba(255,255,255,0.75);
-  padding: 6px;
+  padding: 8px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-
   color: rgba(20,25,35,0.85);
-  transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
+.icon-btn svg{ display:block; }
 
-.icon-btn:hover{
-  background: rgba(255,255,255,0.95);
-  border-color: rgba(0,0,0,0.12);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
-}
-
-.icon-btn:active{ transform: scale(0.96); }
-
-.icon-btn:focus-visible{
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0,122,255,0.30);
-  border-color: rgba(0,122,255,0.35);
-}
-
-.icon-btn svg{ display: block; }
-
-/* =========================================
-   TABULATOR FINAL OVERRIDES (keep at bottom)
-   ========================================= */
-.tabulator{
-  background: rgba(255,255,255,0.35) !important;
-}
-
+/* ===== TABULATOR OVERRIDES ===== */
 .tabulator .tabulator-tableholder .tabulator-table .tabulator-row{
   background: var(--tab-cream) !important;
 }
 .tabulator .tabulator-tableholder .tabulator-table .tabulator-row:nth-child(even){
   background: var(--tab-cream) !important;
 }
-
-/* subtle grid */
-.tabulator .tabulator-tableholder .tabulator-table .tabulator-row{
-  border-bottom: 1px solid rgba(255,255,255,0.22) !important;
-}
-.tabulator .tabulator-tableholder .tabulator-table .tabulator-cell{
-  border-right: 1px solid rgba(255,255,255,0.22) !important;
-}
-
-/* hover uses blue tint */
 .tabulator .tabulator-tableholder .tabulator-table .tabulator-row:hover{
   background: rgba(26,115,232,0.10) !important;
+}
+
+.tabulator .tabulator-tableholder .tabulator-cell{
+  border-right: 1px solid rgba(255,255,255,0.22) !important;
+}
+.tabulator .tabulator-row{
+  border-bottom: 1px solid rgba(255,255,255,0.22) !important;
 }
 
 /* header blue */
 .tabulator .tabulator-header{
   background: var(--tab-blue) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.25) !important;
 }
-
 .tabulator .tabulator-header .tabulator-col{
   background: var(--tab-blue) !important;
   border-right: 1px solid rgba(255,255,255,0.20) !important;
 }
-
-.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title{
+.tabulator .tabulator-header .tabulator-col-title{
   color: rgba(255,255,255,0.98) !important;
   font-weight: 900 !important;
 }
-
-/* arrows visible */
 .tabulator .tabulator-header .tabulator-arrow{
   border-top-color: rgba(255,255,255,0.95) !important;
   border-bottom-color: rgba(255,255,255,0.95) !important;
-  opacity: 0.95 !important;
 }
 
 /* footer blue */
 .tabulator .tabulator-footer{
   background: var(--tab-blue) !important;
-  border-top: 1px solid rgba(255,255,255,0.25) !important;
 }
-
 .tabulator .tabulator-footer,
 .tabulator .tabulator-footer *{
   color: rgba(255,255,255,0.98) !important;
   font-weight: 900 !important;
 }
-
 .tabulator .tabulator-footer select{
-  background: rgba(255,255,255,0.18) !important;
-  border: 1px solid rgba(255,255,255,0.55) !important;
-  color: rgba(255,255,255,0.98) !important;
-}
-
-.tabulator .tabulator-paginator button{
-  background: rgba(255,255,255,0.18) !important;
-  border: 1px solid rgba(255,255,255,0.55) !important;
-  color: rgba(255,255,255,0.98) !important;
-}
-.tabulator .tabulator-paginator button:hover{
-  background: rgba(255,255,255,0.30) !important;
-}
-
-.tabulator .tabulator-footer .tabulator-paginator{
-  display: flex !important;
-  justify-content: flex-end !important;
-  align-items: center !important;
-  gap: 10px !important;
-  width: 100% !important;
-}
-.tabulator .tabulator-footer .tabulator-page-size{
   width: auto !important;
-  flex: 0 0 auto !important;
 }
 
-/* =========================
-   Responsive
-   ========================= */
+/* ✅ MOBILE: horizontal scroll always available */
+.tabulator .tabulator-tableholder{
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive */
 @media (max-width: 980px){
   .controls{ grid-template-columns: 1fr; }
   .universal-filter{ grid-template-columns: 1fr; }
-
   .topbar{
     flex-direction: column;
     align-items: flex-start;
@@ -491,36 +376,11 @@ input[type="file"]{
     margin: 16px auto;
     padding: 0 12px 18px;
   }
-
-  .topbar{
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .topbar-actions{
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  /* Mobile: show collapse header */
-  .controls-toggle{ display: block; }
-
-  /* Make buttons stack cleanly */
   .upload-row{
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
   }
-
   .btn{ width: 100%; }
-
-  /* Horizontal scrolling to see EVERY column */
-  .tabulator .tabulator-tableholder{
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Larger tap target for icon button */
   .icon-btn{ padding: 10px; }
 }
