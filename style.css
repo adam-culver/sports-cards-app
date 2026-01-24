@@ -11,7 +11,7 @@
   --radius: 18px;
   --focus: rgba(0, 122, 255, 0.25);
 
-  /* Tabulator brand */
+  /* Table brand */
   --tab-blue: #1A73E8;
   --tab-cream: #FEFEFA;
 }
@@ -66,9 +66,7 @@ body::before{
   gap: 14px;
 }
 
-.brand.no-logo{
-  gap: 0;
-}
+.brand.no-logo{ gap: 0; }
 
 h1{
   margin: 0;
@@ -99,9 +97,7 @@ h1{
   -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
-.spacer{
-  height: 16px;
-}
+.spacer{ height: 16px; }
 
 .section-head{
   display: flex;
@@ -275,9 +271,7 @@ input[type="file"]{
   font-weight: 700;
 }
 
-.chip:hover{
-  background: rgba(255,255,255,0.75);
-}
+.chip:hover{ background: rgba(255,255,255,0.75); }
 
 .chip-text{
   color: rgba(20,25,35,0.88);
@@ -296,6 +290,49 @@ input[type="file"]{
   line-height: 1;
 }
 
+/* Mobile collapsible controls header */
+.controls-toggle{
+  display: none; /* desktop hidden */
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 0 10px 0;
+  text-align: left;
+}
+
+.controls-toggle-title{
+  display: block;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: rgba(20,25,35,0.92);
+}
+
+.controls-toggle-subtitle{
+  display: block;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.controls-toggle-caret{
+  float: right;
+  margin-top: -28px;
+  font-weight: 900;
+  color: rgba(20,25,35,0.70);
+  transform-origin: center;
+  transition: transform 0.15s ease;
+}
+
+.controls-toggle.is-collapsed .controls-toggle-caret{
+  transform: rotate(-90deg);
+}
+
+.controls-body.is-collapsed{
+  display: none;
+}
+
 /* Table container */
 #cardsTable{
   border-radius: var(--radius);
@@ -311,32 +348,34 @@ input[type="file"]{
   white-space: nowrap;
 }
 
-/* Icon-only button (table) */
+/* Icon-only button (table) - minimalist & visible on light cells */
 .icon-btn{
   appearance: none;
-  border: 0;
-  background: transparent;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.75);
   padding: 6px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: rgba(255,255,255,0.95);
-  transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+
+  color: rgba(20,25,35,0.85);
+  transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .icon-btn:hover{
-  background: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.95);
+  border-color: rgba(0,0,0,0.12);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
 }
 
-.icon-btn:active{
-  transform: scale(0.95);
-}
+.icon-btn:active{ transform: scale(0.96); }
 
 .icon-btn:focus-visible{
   outline: none;
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.35);
+  box-shadow: 0 0 0 3px rgba(0,122,255,0.30);
+  border-color: rgba(0,122,255,0.35);
 }
 
 .icon-btn svg{ display: block; }
@@ -355,6 +394,7 @@ input[type="file"]{
   background: var(--tab-cream) !important;
 }
 
+/* subtle grid */
 .tabulator .tabulator-tableholder .tabulator-table .tabulator-row{
   border-bottom: 1px solid rgba(255,255,255,0.22) !important;
 }
@@ -362,10 +402,12 @@ input[type="file"]{
   border-right: 1px solid rgba(255,255,255,0.22) !important;
 }
 
+/* hover uses blue tint */
 .tabulator .tabulator-tableholder .tabulator-table .tabulator-row:hover{
   background: rgba(26,115,232,0.10) !important;
 }
 
+/* header blue */
 .tabulator .tabulator-header{
   background: var(--tab-blue) !important;
   border-bottom: 1px solid rgba(255,255,255,0.25) !important;
@@ -381,12 +423,14 @@ input[type="file"]{
   font-weight: 900 !important;
 }
 
+/* arrows visible */
 .tabulator .tabulator-header .tabulator-arrow{
   border-top-color: rgba(255,255,255,0.95) !important;
   border-bottom-color: rgba(255,255,255,0.95) !important;
   opacity: 0.95 !important;
 }
 
+/* footer blue */
 .tabulator .tabulator-footer{
   background: var(--tab-blue) !important;
   border-top: 1px solid rgba(255,255,255,0.25) !important;
@@ -426,7 +470,7 @@ input[type="file"]{
 }
 
 /* =========================
-   Mobile UX fixes
+   Responsive
    ========================= */
 @media (max-width: 980px){
   .controls{ grid-template-columns: 1fr; }
@@ -459,28 +503,24 @@ input[type="file"]{
     justify-content: flex-start;
   }
 
-  .controls{
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
+  /* Mobile: show collapse header */
+  .controls-toggle{ display: block; }
 
+  /* Make buttons stack cleanly */
   .upload-row{
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
   }
 
-  .btn{
-    width: 100%;
-  }
+  .btn{ width: 100%; }
 
-  .icon-btn{
-    padding: 12px; /* bigger tap target */
-  }
-
-  /* Horizontal scroll for table on mobile */
+  /* Horizontal scrolling to see EVERY column */
   .tabulator .tabulator-tableholder{
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Larger tap target for icon button */
+  .icon-btn{ padding: 10px; }
 }
